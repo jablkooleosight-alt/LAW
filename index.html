@@ -76,9 +76,9 @@
 
         <div v-else>
             <aside class="sidebar-online p-7">
-                <h4 class="text-[10px] font-black uppercase opacity-40 mb-8 tracking-widest">Aktivní uživatelé</h4>
+                <h4 class="text-[10px] font-black uppercase opacity-40 mb-8 tracking-widest">Tvůj Profil</h4>
                 <div @click="requestAdminDuty" class="flex items-center gap-4 bg-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/20 transition-all group">
-                    <div class="w-10 h-10 rounded-2xl orange-gradient flex items-center justify-center text-white font-black group-hover:scale-110 transition-transform">{{ nickname.charAt(0) }}</div>
+                    <div class="w-10 h-10 rounded-2xl orange-gradient flex items-center justify-center text-white font-black">{{ nickname.charAt(0) }}</div>
                     <div>
                         <p class="text-[11px] font-bold uppercase">{{ nickname }}</p>
                         <div class="flex items-center gap-1.5">
@@ -103,7 +103,7 @@
 
             <main class="max-w-5xl mx-auto px-6 pb-20 main-content-shift" style="margin-left: 300px;">
                 <header class="text-center py-10">
-                    <h1 class="text-6xl font-black mb-4 uppercase italic tracking-tighter">Law Portal</h1>
+                    <h1 class="text-6xl font-black mb-4 uppercase italic tracking-tighter text-slate-900 dark:text-white">Law Portal</h1>
                     <div class="flex flex-wrap justify-center gap-2.5 mb-10">
                         <button @click="view = 'laws'" :class="view === 'laws' ? 'orange-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Dokumenty</button>
                         <button @click="view = 'audit'" :class="view === 'audit' ? 'orange-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Audit Log</button>
@@ -122,7 +122,7 @@
                         </div>
                         <h3 class="text-2xl font-black mb-2 dark:text-white leading-tight">{{ item.title }}</h3>
                         <p class="text-slate-400 mb-8 italic text-xs">{{ item.subtitle }}</p>
-                        <button @click="selectedItem = item" class="w-full py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-black text-[10px] uppercase group-hover:bg-orange-500 group-hover:border-orange-500 group-hover:text-white transition-all">Prohlédnout dokument</button>
+                        <button @click="selectedItem = item" class="w-full py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 dark:text-white font-black text-[10px] uppercase group-hover:bg-orange-500 group-hover:border-orange-500 group-hover:text-white transition-all">Prohlédnout dokument</button>
                     </div>
                 </div>
 
@@ -131,9 +131,9 @@
                         <thead>
                             <tr class="opacity-40 uppercase font-black text-[10px] border-b dark:border-slate-800">
                                 <th class="py-4 px-2">Datum a čas</th>
-                                <th>Dokument / Cíl</th>
+                                <th>Cíl</th>
                                 <th>Akce</th>
-                                <th>Odpovědná osoba</th>
+                                <th>Osoba</th>
                             </tr>
                         </thead>
                         <tbody class="text-xs">
@@ -164,8 +164,8 @@
                         </div>
                         <button @click="selectedItem = null" class="text-2xl opacity-20 hover:opacity-100">✕</button>
                     </div>
-                    <div class="prose dark:prose-invert max-w-none">
-                        <div class="border-l-4 border-orange-500 pl-8 italic dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-sm">{{ selectedItem.content }}</div>
+                    <div class="border-l-4 border-orange-500 pl-8 italic dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-sm">
+                        {{ selectedItem.content }}
                     </div>
                 </div>
             </div>
@@ -211,9 +211,9 @@
         createApp({
             data() {
                 return {
-                    isLoggedIn: false,
+                    isLoggedIn: localStorage.getItem('sa_logged_in') === 'true',
+                    nickname: localStorage.getItem('sa_nick') || '',
                     authMode: 'LOGIN',
-                    nickname: '',
                     lampSwitchedOn: false,
                     view: 'laws',
                     darkMode: true,
@@ -226,6 +226,9 @@
                     showEditorModal: false,
                     currentEditorData: { id: null, title: '', subtitle: '', type: 'Zákon', content: '' }
                 }
+            },
+            mounted() {
+                if (this.isLoggedIn) this.fetchData();
             },
             methods: {
                 toggleLamp() { this.lampSwitchedOn = !this.lampSwitchedOn },
@@ -243,8 +246,7 @@
                     if (!this.authForm.username || !this.authForm.password) return alert("Vyplňte všechna pole.");
 
                     if (this.authMode === 'LOGIN') {
-                        const { data: user } = await _supabase.from('profiles')
-                            .select('*').eq('nickname', this.authForm.username).single();
+                        const { data: user, error } = await _supabase.from('profiles').select('*').eq('nickname', this.authForm.username).single();
                         
                         if (user && user.password === this.authForm.password) {
                             this.loginSuccess(user);
@@ -252,14 +254,12 @@
                             alert("Chybné jméno nebo heslo.");
                         }
                     } else {
-                        const { error } = await _supabase.from('profiles').insert([
-                            { nickname: this.authForm.username, password: this.authForm.password }
-                        ]);
+                        const { error } = await _supabase.from('profiles').insert([{ nickname: this.authForm.username, password: this.authForm.password }]);
                         if (!error) {
                             alert("Registrace úspěšná! Nyní se přihlaste.");
                             this.authMode = 'LOGIN';
                         } else {
-                            alert("Nickname je již obsazen.");
+                            alert("Chyba: " + error.message);
                         }
                     }
                 },
@@ -267,55 +267,45 @@
                 loginSuccess(user) {
                     this.isLoggedIn = true;
                     this.nickname = user.nickname;
-                    this.adminDuty = false; // Po přihlášení je uživatel vždy v běžném režimu
+                    localStorage.setItem('sa_logged_in', 'true');
+                    localStorage.setItem('sa_nick', user.nickname);
                     this.addLog("Vstup do portálu", "Login");
                     this.fetchData();
                 },
 
-                // AKTIVACE ADMIN DUTY PŘES KÓD
+                logout() { 
+                    this.isLoggedIn = false; 
+                    this.adminDuty = false;
+                    localStorage.clear();
+                },
+
                 requestAdminDuty() {
-    // Pokud už v Duty je, odhlásíme ho
-    if (this.adminDuty) {
-        if (confirm("Chcete ukončit Admin Duty a vrátit se do režimu prohlížení?")) {
-            this.adminDuty = false;
-            this.addLog("Deaktivace Admin Duty", "System");
-            alert("Admin Duty bylo ukončeno.");
-        }
-        return;
-    }
-
-    // Pokud v Duty není, vyžádáme si kód
-    const code = prompt("Zadejte autorizační kód pro Admin Duty:");
-    if (code === "216726") {
-        this.adminDuty = true;
-        this.addLog("Aktivace Admin Duty", "System");
-        alert("Režim správce byl aktivován.");
-    } else if (code !== null) { // Pokud uživatel nedal 'Storno'
-        alert("Nesprávný kód.");
-    }
-},
-
-                logout() { this.isLoggedIn = false; this.nickname = ''; this.adminDuty = false; },
+                    if (this.adminDuty) {
+                        if (confirm("Ukončit Admin Duty?")) {
+                            this.adminDuty = false;
+                            this.addLog("Deaktivace Admin Duty", "System");
+                        }
+                        return;
+                    }
+                    const code = prompt("Zadejte kód pro Duty:");
+                    if (code === "216726") {
+                        this.adminDuty = true;
+                        this.addLog("Aktivace Admin Duty", "System");
+                    } else if (code !== null) alert("Nesprávný kód.");
+                },
 
                 async saveEntry() {
                     const isEdit = this.currentEditorData.id;
                     const action = isEdit ? 'Úprava' : 'Vytvoření';
-                    
-                    if (isEdit) {
-                        await _supabase.from('entries').update({
-                            title: this.currentEditorData.title,
-                            type: this.currentEditorData.type,
-                            content: this.currentEditorData.content,
-                            subtitle: "Aktualizováno " + new Date().toLocaleDateString()
-                        }).eq('id', isEdit);
-                    } else {
-                        await _supabase.from('entries').insert([{
-                            title: this.currentEditorData.title,
-                            type: this.currentEditorData.type,
-                            content: this.currentEditorData.content,
-                            subtitle: "Vydáno " + new Date().toLocaleDateString()
-                        }]);
-                    }
+                    const payload = {
+                        title: this.currentEditorData.title,
+                        type: this.currentEditorData.type,
+                        content: this.currentEditorData.content,
+                        subtitle: (isEdit ? "Aktualizováno " : "Vydáno ") + new Date().toLocaleDateString()
+                    };
+
+                    if (isEdit) await _supabase.from('entries').update(payload).eq('id', isEdit);
+                    else await _supabase.from('entries').insert([payload]);
                     
                     await this.addLog(this.currentEditorData.title, action);
                     this.showEditorModal = false;
@@ -323,7 +313,7 @@
                 },
 
                 async deleteEntry(id, title) {
-                    if (confirm(`Opravdu smazat "${title}"?`)) {
+                    if (confirm(`Smazat "${title}"?`)) {
                         await _supabase.from('entries').delete().eq('id', id);
                         await this.addLog(title, "Smazáno");
                         this.fetchData();
@@ -331,21 +321,12 @@
                 },
 
                 async addLog(target, action) {
-                    await _supabase.from('audit_logs').insert([{
-                        username: this.nickname, target: target, action: action
-                    }]);
+                    await _supabase.from('audit_logs').insert([{ username: this.nickname, target: target, action: action }]);
                     this.fetchData();
                 },
 
-                createNewEntry() { 
-                    this.currentEditorData = { id: null, title: '', subtitle: '', type: 'Zákon', content: '' }; 
-                    this.showEditorModal = true; 
-                },
-
-                editEntry(item) { 
-                    this.currentEditorData = { ...item }; 
-                    this.showEditorModal = true; 
-                }
+                createNewEntry() { this.currentEditorData = { id: null, title: '', subtitle: '', type: 'Zákon', content: '' }; this.showEditorModal = true; },
+                editEntry(item) { this.currentEditorData = { ...item }; this.showEditorModal = true; }
             }
         }).mount('#app')
     </script>
