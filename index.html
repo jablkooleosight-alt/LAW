@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="cs" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>San Andreas Government - Law Portal v7.5</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { colors: { brand: '#f97316', emergency: '#dc2626' } } }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; overflow-x: hidden; }
+        .orange-gradient { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        .emergency-gradient { background: linear-gradient(90deg, #991b1b 0%, #dc2626 50%, #991b1b 100%); background-size: 200% auto; animation: move-bg 3s linear infinite; }
+        @keyframes move-bg { to { background-position: 200% center; } }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #f97316; border-radius: 10px; }
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 3.5rem; font-weight: 900; opacity: 0.03; pointer-events: none; white-space: nowrap; text-transform: uppercase; user-select: none; }
+        .sidebar-online { width: 260px; height: calc(100vh - 140px); position: fixed; left: 30px; top: 100px; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(15px); border-radius: 2.5rem; border: 1px solid rgba(255, 255, 255, 0.2); z-index: 50; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .dark .sidebar-online { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); }
+        
+        .lamp-wrapper { position: relative; width: 160px; height: 220px; display: flex; justify-content: center; }
+        .lamp-head { width: 110px; height: 75px; background: #1e293b; border-radius: 40px 40px 0 0; position: relative; z-index: 10; border-bottom: 4px solid #0f172a; }
+        .lamp-head.active { background: #f97316; box-shadow: 0 0 80px rgba(249, 115, 22, 0.5); }
+        .pull-cord-container { position: absolute; right: 15px; top: 90px; width: 30px; height: 100px; display: flex; justify-content: center; cursor: pointer; z-index: 100; }
+        .pull-cord { width: 3px; height: 75px; background: #64748b; border-radius: 2px; transition: 0.15s; transform-origin: top; position: relative; }
+        .pull-cord::after { content: ''; position: absolute; bottom: -15px; left: -4px; width: 11px; height: 11px; background: #cbd5e1; border-radius: 50%; }
+        
+        @media (max-width: 1400px) { .sidebar-online { display: none; } .main-content-shift { margin-left: auto !important; margin-right: auto !important; } }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    <div id="app" class="min-h-screen">
+        
+        <div v-if="emergencyMode" class="emergency-gradient text-white py-2 text-center text-[10px] font-black uppercase tracking-[0.3em] sticky top-0 z-[150] shadow-xl">
+            ⚠️ NOUZOVÝ STAV AKTIVOVÁN ⚠️
+        </div>
+
+        <div v-if="!isLoggedIn" class="fixed inset-0 z-[2000] flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-950">
+            <div class="lamp-wrapper mb-8">
+                <div class="lamp-head" :class="{active: lampSwitchedOn}"></div>
+                <div class="lamp-stick w-[8px] h-[130px] bg-[#334155] absolute bottom-[12px]"></div>
+                <div class="lamp-base w-[90px] h-[10px] bg-[#334155] rounded-[5px] mt-[130px]"></div>
+                <div @click="toggleLamp" class="pull-cord-container"><div class="pull-cord"></div></div>
+            </div>
+            
+            <div v-if="lampSwitchedOn" class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl animate__animated animate__fadeInUp">
+                <h2 class="text-2xl font-black text-center mb-6 uppercase italic tracking-tighter">
+                    {{ authMode === 'LOGIN' ? 'Vstup do systému' : 'Nová registrace' }}
+                </h2>
+                
+                <div class="space-y-3">
+                    <input v-model="authForm.username" type="text" placeholder="Nickname" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-orange-500 transition-all">
+                    <input v-model="authForm.password" type="password" placeholder="Heslo" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-orange-500 transition-all">
+                    
+                    <button @click="handleAuth" class="w-full py-4 orange-gradient text-white rounded-xl font-black uppercase shadow-lg hover:scale-105 transition-transform">
+                        {{ authMode === 'LOGIN' ? 'Vstoupit' : 'Vytvořit účet' }}
+                    </button>
+                    
+                    <p @click="authMode = (authMode === 'LOGIN' ? 'REGISTER' : 'LOGIN')" class="text-center text-[10px] uppercase font-black opacity-40 hover:opacity-100 cursor-pointer pt-2">
+                        {{ authMode === 'LOGIN' ? 'Nemáte účet? Zaregistrujte se' : 'Již máte účet? Přihlaste se' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div v-else>
+            <aside class="sidebar-online p-7">
+                <h4 class="text-[10px] font-black uppercase opacity-40 mb-8 tracking-widest">Aktivní uživatelé</h4>
+                <div @click="requestAdminDuty" class="flex items-center gap-4 bg-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/20 transition-all group">
+                    <div class="w-10 h-10 rounded-2xl orange-gradient flex items-center justify-center text-white font-black group-hover:scale-110 transition-transform">{{ nickname.charAt(0) }}</div>
+                    <div>
+                        <p class="text-[11px] font-bold uppercase">{{ nickname }}</p>
+                        <div class="flex items-center gap-1.5">
+                            <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="adminDuty ? 'bg-orange-500' : 'bg-green-500'"></span>
+                            <p class="text-[8px] opacity-40 uppercase">{{ adminDuty ? 'Administrator Duty' : 'Aktivovat Admin' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <nav class="p-5 flex justify-between items-center max-w-6xl mx-auto main-content-shift" style="margin-left: 320px;">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 orange-gradient rounded-lg flex items-center justify-center text-white font-black text-[10px]">GOV</div>
+                    <span class="text-lg font-black uppercase tracking-tighter italic">San Andreas Government</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button @click="toggleEmergency" v-if="adminDuty" class="px-4 py-1.5 rounded-full border border-red-600 text-red-600 text-[9px] font-black uppercase hover:bg-red-600 hover:text-white transition-all">Nouzový stav</button>
+                    <button @click="toggleTheme" class="p-2 bg-slate-200 dark:bg-slate-800 rounded-xl transition-all hover:rotate-12">{{ darkMode ? '☀️' : '🌙' }}</button>
+                    <button @click="logout" class="text-xs font-black uppercase opacity-40 hover:opacity-100 transition-opacity">Odhlásit</button>
+                </div>
+            </nav>
+
+            <main class="max-w-5xl mx-auto px-6 pb-20 main-content-shift" style="margin-left: 300px;">
+                <header class="text-center py-10">
+                    <h1 class="text-6xl font-black mb-4 uppercase italic tracking-tighter">Law Portal</h1>
+                    <div class="flex flex-wrap justify-center gap-2.5 mb-10">
+                        <button @click="view = 'laws'" :class="view === 'laws' ? 'orange-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Dokumenty</button>
+                        <button @click="view = 'audit'" :class="view === 'audit' ? 'orange-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Audit Log</button>
+                        <button v-if="adminDuty" @click="createNewEntry" class="bg-green-600 text-white px-8 py-3 rounded-xl font-black uppercase text-[10px] hover:bg-green-500 transition-all">+ Nový záznam</button>
+                    </div>
+                </header>
+
+                <div v-if="view === 'laws'" class="grid grid-cols-1 md:grid-cols-2 gap-6 animate__animated animate__fadeIn">
+                    <div v-for="item in entries" :key="item.id" class="group bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-transparent dark:border-slate-800 hover:border-orange-500/50 transition-all">
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="bg-orange-100 text-orange-600 dark:bg-orange-900/30 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest">{{ item.type }}</span>
+                            <div v-if="adminDuty" class="flex gap-3">
+                                <button @click="editEntry(item)" class="text-blue-500 text-[9px] font-black uppercase hover:underline">Upravit</button>
+                                <button @click="deleteEntry(item.id, item.title)" class="text-red-500 text-[9px] font-black uppercase hover:underline">Smazat</button>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-black mb-2 dark:text-white leading-tight">{{ item.title }}</h3>
+                        <p class="text-slate-400 mb-8 italic text-xs">{{ item.subtitle }}</p>
+                        <button @click="selectedItem = item" class="w-full py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-black text-[10px] uppercase group-hover:bg-orange-500 group-hover:border-orange-500 group-hover:text-white transition-all">Prohlédnout dokument</button>
+                    </div>
+                </div>
+
+                <div v-if="view === 'audit'" class="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-xl border dark:border-slate-800 animate__animated animate__fadeIn">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="opacity-40 uppercase font-black text-[10px] border-b dark:border-slate-800">
+                                <th class="py-4 px-2">Datum a čas</th>
+                                <th>Dokument / Cíl</th>
+                                <th>Akce</th>
+                                <th>Odpovědná osoba</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-xs">
+                            <tr v-for="log in auditLogs" :key="log.id" class="border-b dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                <td class="py-4 px-2 opacity-60">{{ new Date(log.timestamp).toLocaleString() }}</td>
+                                <td class="font-bold uppercase">{{ log.target }}</td>
+                                <td>
+                                    <span :class="log.action === 'Smazáno' ? 'text-red-500' : (log.action === 'Úprava' ? 'text-blue-500' : 'text-green-500')" class="font-black uppercase text-[9px]">
+                                        {{ log.action }}
+                                    </span>
+                                </td>
+                                <td class="italic opacity-60">{{ log.username }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+
+        <div v-if="selectedItem" class="fixed inset-0 z-[3000] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md animate__animated animate__fadeIn" @click.self="selectedItem = null">
+            <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[3rem] p-10 relative overflow-hidden shadow-2xl">
+                <div class="watermark">OFFICIAL STATE DOCUMENT</div>
+                <div class="relative z-10">
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            <span class="text-orange-500 font-black text-[10px] uppercase tracking-widest">{{ selectedItem.type }}</span>
+                            <h2 class="text-4xl font-black dark:text-white mt-1">{{ selectedItem.title }}</h2>
+                        </div>
+                        <button @click="selectedItem = null" class="text-2xl opacity-20 hover:opacity-100">✕</button>
+                    </div>
+                    <div class="prose dark:prose-invert max-w-none">
+                        <div class="border-l-4 border-orange-500 pl-8 italic dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-sm">{{ selectedItem.content }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="showEditorModal" class="fixed inset-0 z-[4000] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-sm animate__animated animate__zoomIn">
+            <div class="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-[2.5rem] p-8">
+                <h2 class="text-2xl font-black mb-6 dark:text-white uppercase italic">Editor dokumentu</h2>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="col-span-2">
+                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">Název dokumentu</label>
+                            <input v-model="currentEditorData.title" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1">
+                        </div>
+                        <div>
+                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">Typ</label>
+                            <select v-model="currentEditorData.type" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1">
+                                <option>Zákon</option>
+                                <option>Vyhláška</option>
+                                <option>Předpis</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black uppercase opacity-40 ml-2">Obsah dokumentu</label>
+                        <textarea v-model="currentEditorData.content" class="w-full h-80 p-6 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 custom-scrollbar" placeholder="Zde vložte text právní úpravy..."></textarea>
+                    </div>
+                </div>
+                <div class="mt-8 flex justify-end gap-4">
+                    <button @click="showEditorModal = false" class="px-6 py-2 font-bold uppercase text-slate-400 hover:text-white transition-colors">Zavřít</button>
+                    <button @click="saveEntry" class="px-10 py-3 orange-gradient text-white rounded-xl font-black uppercase shadow-lg hover:scale-105 transition-transform">Uložit do databáze</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+        const SUPABASE_URL = 'https://hwnixtvddkkbyehughph.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3bml4dHZkZGtrYnllaHVncHBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNTI3MzUsImV4cCI6MjA4NzgyODczNX0.xVDxIe-kXPR6Fs626cnmdoK6U8m2USHuiyRPZp2VkeI';
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        createApp({
+            data() {
+                return {
+                    isLoggedIn: false,
+                    authMode: 'LOGIN',
+                    nickname: '',
+                    lampSwitchedOn: false,
+                    view: 'laws',
+                    darkMode: true,
+                    adminDuty: false,
+                    emergencyMode: false,
+                    authForm: { username: '', password: '' },
+                    entries: [],
+                    auditLogs: [],
+                    selectedItem: null,
+                    showEditorModal: false,
+                    currentEditorData: { id: null, title: '', subtitle: '', type: 'Zákon', content: '' }
+                }
+            },
+            methods: {
+                toggleLamp() { this.lampSwitchedOn = !this.lampSwitchedOn },
+                toggleTheme() { this.darkMode = !this.darkMode; document.documentElement.classList.toggle('dark', this.darkMode); },
+                toggleEmergency() { this.emergencyMode = !this.emergencyMode; },
+                
+                async fetchData() {
+                    const { data: ent } = await _supabase.from('entries').select('*').order('created_at', { ascending: false });
+                    if (ent) this.entries = ent;
+                    const { data: logs } = await _supabase.from('audit_logs').select('*').order('timestamp', { ascending: false }).limit(30);
+                    if (logs) this.auditLogs = logs;
+                },
+
+                async handleAuth() {
+                    if (!this.authForm.username || !this.authForm.password) return alert("Vyplňte všechna pole.");
+
+                    if (this.authMode === 'LOGIN') {
+                        const { data: user } = await _supabase.from('profiles')
+                            .select('*').eq('nickname', this.authForm.username).single();
+                        
+                        if (user && user.password === this.authForm.password) {
+                            this.loginSuccess(user);
+                        } else {
+                            alert("Chybné jméno nebo heslo.");
+                        }
+                    } else {
+                        const { error } = await _supabase.from('profiles').insert([
+                            { nickname: this.authForm.username, password: this.authForm.password }
+                        ]);
+                        if (!error) {
+                            alert("Registrace úspěšná! Nyní se přihlaste.");
+                            this.authMode = 'LOGIN';
+                        } else {
+                            alert("Nickname je již obsazen.");
+                        }
+                    }
+                },
+
+                loginSuccess(user) {
+                    this.isLoggedIn = true;
+                    this.nickname = user.nickname;
+                    this.adminDuty = false; // Po přihlášení je uživatel vždy v běžném režimu
+                    this.addLog("Vstup do portálu", "Login");
+                    this.fetchData();
+                },
+
+                // AKTIVACE ADMIN DUTY PŘES KÓD
+                requestAdminDuty() {
+    // Pokud už v Duty je, odhlásíme ho
+    if (this.adminDuty) {
+        if (confirm("Chcete ukončit Admin Duty a vrátit se do režimu prohlížení?")) {
+            this.adminDuty = false;
+            this.addLog("Deaktivace Admin Duty", "System");
+            alert("Admin Duty bylo ukončeno.");
+        }
+        return;
+    }
+
+    // Pokud v Duty není, vyžádáme si kód
+    const code = prompt("Zadejte autorizační kód pro Admin Duty:");
+    if (code === "216726") {
+        this.adminDuty = true;
+        this.addLog("Aktivace Admin Duty", "System");
+        alert("Režim správce byl aktivován.");
+    } else if (code !== null) { // Pokud uživatel nedal 'Storno'
+        alert("Nesprávný kód.");
+    }
+},
+
+                logout() { this.isLoggedIn = false; this.nickname = ''; this.adminDuty = false; },
+
+                async saveEntry() {
+                    const isEdit = this.currentEditorData.id;
+                    const action = isEdit ? 'Úprava' : 'Vytvoření';
+                    
+                    if (isEdit) {
+                        await _supabase.from('entries').update({
+                            title: this.currentEditorData.title,
+                            type: this.currentEditorData.type,
+                            content: this.currentEditorData.content,
+                            subtitle: "Aktualizováno " + new Date().toLocaleDateString()
+                        }).eq('id', isEdit);
+                    } else {
+                        await _supabase.from('entries').insert([{
+                            title: this.currentEditorData.title,
+                            type: this.currentEditorData.type,
+                            content: this.currentEditorData.content,
+                            subtitle: "Vydáno " + new Date().toLocaleDateString()
+                        }]);
+                    }
+                    
+                    await this.addLog(this.currentEditorData.title, action);
+                    this.showEditorModal = false;
+                    this.fetchData();
+                },
+
+                async deleteEntry(id, title) {
+                    if (confirm(`Opravdu smazat "${title}"?`)) {
+                        await _supabase.from('entries').delete().eq('id', id);
+                        await this.addLog(title, "Smazáno");
+                        this.fetchData();
+                    }
+                },
+
+                async addLog(target, action) {
+                    await _supabase.from('audit_logs').insert([{
+                        username: this.nickname, target: target, action: action
+                    }]);
+                    this.fetchData();
+                },
+
+                createNewEntry() { 
+                    this.currentEditorData = { id: null, title: '', subtitle: '', type: 'Zákon', content: '' }; 
+                    this.showEditorModal = true; 
+                },
+
+                editEntry(item) { 
+                    this.currentEditorData = { ...item }; 
+                    this.showEditorModal = true; 
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
