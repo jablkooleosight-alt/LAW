@@ -43,7 +43,7 @@
     <div id="app" class="min-h-screen">
         
         <div v-if="emergencyMode" class="emergency-gradient text-white py-2 text-center text-[10px] font-black uppercase tracking-[0.3em] sticky top-0 z-[150] shadow-xl">
-            ⚠️ NOUZOVÝ STAV AKTIVOVÁN ⚠️
+            ⚠️ NOUZOVÝ STAV AKTIVOVÁN | KONEC ZA: {{ emergencyCountdown }} ⚠️
         </div>
 
         <div v-if="!isLoggedIn" class="fixed inset-0 z-[2000] flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-950">
@@ -154,49 +154,57 @@
         </div>
 
         <div v-if="selectedItem" class="fixed inset-0 z-[3000] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md animate__animated animate__fadeIn" @click.self="selectedItem = null">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[3rem] p-10 relative overflow-hidden shadow-2xl">
+            <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] p-8 relative overflow-hidden shadow-2xl max-h-[85vh] flex flex-col">
                 <div class="watermark">OFFICIAL STATE DOCUMENT</div>
-                <div class="relative z-10">
-                    <div class="flex justify-between items-start mb-8">
+                <div class="relative z-10 flex flex-col h-full">
+                    <div class="flex justify-between items-start mb-6">
                         <div>
                             <span class="text-orange-500 font-black text-[10px] uppercase tracking-widest">{{ selectedItem.type }}</span>
-                            <h2 class="text-4xl font-black dark:text-white mt-1">{{ selectedItem.title }}</h2>
+                            <h2 class="text-3xl font-black dark:text-white mt-1">{{ selectedItem.title }}</h2>
+                            <p class="text-xs opacity-50 italic">{{ selectedItem.subtitle }}</p>
                         </div>
                         <button @click="selectedItem = null" class="text-2xl opacity-20 hover:opacity-100">✕</button>
                     </div>
-                    <div class="border-l-4 border-orange-500 pl-8 italic dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-sm">
-                        {{ selectedItem.content }}
+                    <div class="flex-grow overflow-y-auto pr-4 custom-scrollbar border-l-4 border-orange-500 pl-6">
+                        <div class="italic dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-sm">
+                            {{ selectedItem.content }}
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div v-if="showEditorModal" class="fixed inset-0 z-[4000] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-sm animate__animated animate__zoomIn">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-[2.5rem] p-8">
-                <h2 class="text-2xl font-black mb-6 dark:text-white uppercase italic">Editor dokumentu</h2>
-                <div class="space-y-4">
-                    <div class="grid grid-cols-3 gap-4">
-                        <div class="col-span-2">
+            <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
+                <h2 class="text-xl font-black mb-6 dark:text-white uppercase italic border-b dark:border-slate-800 pb-2">Editor dokumentu</h2>
+                <div class="space-y-5">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
                             <label class="text-[9px] font-black uppercase opacity-40 ml-2">Název dokumentu</label>
-                            <input v-model="currentEditorData.title" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1">
+                            <input v-model="currentEditorData.title" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm">
                         </div>
                         <div>
                             <label class="text-[9px] font-black uppercase opacity-40 ml-2">Typ</label>
-                            <select v-model="currentEditorData.type" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1">
+                            <select v-model="currentEditorData.type" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm">
                                 <option>Zákon</option>
+                                <option>Novela</option>
                                 <option>Vyhláška</option>
                                 <option>Předpis</option>
                             </select>
                         </div>
                     </div>
                     <div>
-                        <label class="text-[9px] font-black uppercase opacity-40 ml-2">Obsah dokumentu</label>
-                        <textarea v-model="currentEditorData.content" class="w-full h-80 p-6 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 custom-scrollbar" placeholder="Zde vložte text právní úpravy..."></textarea>
+                        <label class="text-[9px] font-black uppercase opacity-40 ml-2">Mini popisek (Zobrazí se na kartě)</label>
+                        <input v-model="currentEditorData.subtitle" placeholder="Např. Aktualizováno 01.03.2026" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black uppercase opacity-40 ml-2">Celý obsah dokumentu</label>
+                        <textarea v-model="currentEditorData.content" class="w-full h-64 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 custom-scrollbar border border-transparent focus:border-orange-500 transition-all text-sm" placeholder="Zde vložte kompletní text..."></textarea>
                     </div>
                 </div>
-                <div class="mt-8 flex justify-end gap-4">
-                    <button @click="showEditorModal = false" class="px-6 py-2 font-bold uppercase text-slate-400 hover:text-white transition-colors">Zavřít</button>
-                    <button @click="saveEntry" class="px-10 py-3 orange-gradient text-white rounded-xl font-black uppercase shadow-lg hover:scale-105 transition-transform">Uložit do databáze</button>
+                <div class="mt-8 flex justify-end gap-3 border-t dark:border-slate-800 pt-4">
+                    <button @click="showEditorModal = false" class="px-4 py-2 text-xs font-bold uppercase text-slate-400 hover:text-white">Zavřít</button>
+                    <button @click="saveEntry" class="px-8 py-3 orange-gradient text-white rounded-xl font-black uppercase text-[10px] shadow-lg hover:scale-105 transition-transform">Uložit do databáze</button>
                 </div>
             </div>
         </div>
@@ -219,6 +227,8 @@
                     darkMode: true,
                     adminDuty: false,
                     emergencyMode: false,
+                    emergencyCountdown: '30d 00h 00m 00s',
+                    countdownTimer: null,
                     authForm: { username: '', password: '' },
                     entries: [],
                     auditLogs: [],
@@ -229,8 +239,31 @@
             },
             mounted() {
                 if (this.isLoggedIn) this.fetchData();
+                this.startCountdown();
             },
             methods: {
+                startCountdown() {
+                    // Nastavení 30 dnů od nynějška
+                    const targetDate = new Date();
+                    targetDate.setDate(targetDate.getDate() + 30);
+
+                    this.countdownTimer = setInterval(() => {
+                        const now = new Date().getTime();
+                        const distance = targetDate.getTime() - now;
+
+                        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                        this.emergencyCountdown = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+                        if (distance < 0) {
+                            clearInterval(this.countdownTimer);
+                            this.emergencyCountdown = "VYPRŠELO";
+                        }
+                    }, 1000);
+                },
                 toggleLamp() { this.lampSwitchedOn = !this.lampSwitchedOn },
                 toggleTheme() { this.darkMode = !this.darkMode; document.documentElement.classList.toggle('dark', this.darkMode); },
                 toggleEmergency() { this.emergencyMode = !this.emergencyMode; },
@@ -301,7 +334,7 @@
                         title: this.currentEditorData.title,
                         type: this.currentEditorData.type,
                         content: this.currentEditorData.content,
-                        subtitle: (isEdit ? "Aktualizováno " : "Vydáno ") + new Date().toLocaleDateString()
+                        subtitle: this.currentEditorData.subtitle
                     };
 
                     if (isEdit) await _supabase.from('entries').update(payload).eq('id', isEdit);
