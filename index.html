@@ -36,6 +36,9 @@
         .pull-cord { width: 3px; height: 75px; background: #64748b; border-radius: 2px; transition: 0.15s; transform-origin: top; position: relative; }
         .pull-cord::after { content: ''; position: absolute; bottom: -15px; left: -4px; width: 11px; height: 11px; background: #cbd5e1; border-radius: 50%; }
         
+        @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .pulse-admin { animation: pulse-red 2s infinite; color: #ef4444; font-weight: 900; font-size: 10px; letter-spacing: 0.1em; }
+
         @media (max-width: 1400px) { .sidebar-online { display: none; } .main-content-shift { margin-left: auto !important; margin-right: auto !important; } }
     </style>
 </head>
@@ -77,12 +80,12 @@
         <div v-else>
             <aside class="sidebar-online p-7">
                 <h4 class="text-[10px] font-black uppercase opacity-40 mb-8 tracking-widest">Tvůj Profil</h4>
-                <div @click="requestAdminDuty" class="flex items-center gap-4 bg-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/20 transition-all group">
+                <div @click="handleDutyToggle" class="flex items-center gap-4 bg-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/20 transition-all group">
                     <div class="w-10 h-10 rounded-2xl orange-gradient flex items-center justify-center text-white font-black">{{ nickname.charAt(0) }}</div>
                     <div>
-                        <p class="text-[11px] font-bold uppercase">{{ nickname }}</p>
+                        <p class="text-[11px] font-bold uppercase transition-colors" :class="adminDuty ? 'text-red-500' : ''">{{ nickname }}</p>
                         <div class="flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="adminDuty ? 'bg-orange-500' : 'bg-green-500'"></span>
+                            <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="adminDuty ? 'bg-red-500' : 'bg-green-500'"></span>
                             <p class="text-[8px] opacity-40 uppercase">{{ adminDuty ? 'Administrator Duty' : 'Aktivovat Admin' }}</p>
                         </div>
                     </div>
@@ -94,7 +97,9 @@
                     <div class="w-8 h-8 orange-gradient rounded-lg flex items-center justify-center text-white font-black text-[10px]">GOV</div>
                     <span class="text-lg font-black uppercase tracking-tighter italic">San Andreas Government</span>
                 </div>
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-6">
+                    <span v-if="adminDuty" class="pulse-admin uppercase tracking-widest animate-pulse">● Admin Duty Active</span>
+                    
                     <button @click="toggleEmergency" v-if="adminDuty" class="px-4 py-1.5 rounded-full border border-red-600 text-red-600 text-[9px] font-black uppercase hover:bg-red-600 hover:text-white transition-all">Nouzový stav</button>
                     <button @click="toggleTheme" class="p-2 bg-slate-200 dark:bg-slate-800 rounded-xl transition-all hover:rotate-12">{{ darkMode ? '☀️' : '🌙' }}</button>
                     <button @click="logout" class="text-xs font-black uppercase opacity-40 hover:opacity-100 transition-opacity">Odhlásit</button>
@@ -106,7 +111,7 @@
                     <h1 class="text-6xl font-black mb-4 uppercase italic tracking-tighter text-slate-900 dark:text-white">Law Portal</h1>
                     <div class="flex flex-wrap justify-center gap-2.5 mb-10">
                         <button @click="view = 'laws'" :class="view === 'laws' ? 'orange-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Dokumenty</button>
-                        <button @click="view = 'audit'" :class="view === 'audit' ? 'orange-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Audit Log</button>
+                        <button v-if="adminDuty" @click="view = 'audit'" :class="view === 'audit' ? 'orange-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Audit Log</button>
                         <button v-if="adminDuty" @click="createNewEntry" class="bg-green-600 text-white px-8 py-3 rounded-xl font-black uppercase text-[10px] hover:bg-green-500 transition-all">+ Nový záznam</button>
                     </div>
                 </header>
@@ -126,7 +131,7 @@
                     </div>
                 </div>
 
-                <div v-if="view === 'audit'" class="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-xl border dark:border-slate-800 animate__animated animate__fadeIn">
+                <div v-if="view === 'audit' && adminDuty" class="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-xl border dark:border-slate-800 animate__animated animate__fadeIn">
                     <table class="w-full text-left">
                         <thead>
                             <tr class="opacity-40 uppercase font-black text-[10px] border-b dark:border-slate-800">
@@ -154,22 +159,35 @@
         </div>
 
         <div v-if="selectedItem" class="fixed inset-0 z-[3000] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md animate__animated animate__fadeIn" @click.self="selectedItem = null">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] p-8 relative overflow-hidden shadow-2xl max-h-[85vh] flex flex-col">
+            <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] p-10 relative overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
                 <div class="watermark">OFFICIAL STATE DOCUMENT</div>
-                <div class="relative z-10 flex flex-col h-full">
-                    <div class="flex justify-between items-start mb-6">
+                <div class="relative z-10 flex flex-col h-full overflow-hidden">
+                    <div class="flex justify-between items-start mb-8 shrink-0">
                         <div>
                             <span class="text-orange-500 font-black text-[10px] uppercase tracking-widest">{{ selectedItem.type }}</span>
-                            <h2 class="text-3xl font-black dark:text-white mt-1">{{ selectedItem.title }}</h2>
-                            <p class="text-xs opacity-50 italic">{{ selectedItem.subtitle }}</p>
+                            <h2 class="text-3xl font-black dark:text-white mt-1 uppercase italic tracking-tighter">{{ selectedItem.title }}</h2>
+                            <p class="text-xs opacity-50 italic mt-1">{{ selectedItem.subtitle }}</p>
                         </div>
                         <button @click="selectedItem = null" class="text-2xl opacity-20 hover:opacity-100">✕</button>
                     </div>
-                    <div class="flex-grow overflow-y-auto pr-4 custom-scrollbar border-l-4 border-orange-500 pl-6">
+                    <div class="overflow-y-auto pr-4 custom-scrollbar flex-grow border-l-4 border-orange-500 pl-8">
                         <div class="italic dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-sm">
                             {{ selectedItem.content }}
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="showDutyModal" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-sm animate__animated animate__fadeIn">
+            <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-[2rem] p-8 shadow-2xl text-center">
+                <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl">🛡️</div>
+                <h3 class="text-xl font-black uppercase italic dark:text-white mb-2">Autorizace</h3>
+                <p class="text-[10px] opacity-40 uppercase mb-6">Zadejte přístupový kód pro Duty</p>
+                <input v-model="dutyInputCode" type="password" placeholder="••••••" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white text-center outline-none border-2 border-transparent focus:border-red-500 transition-all mb-4 tracking-[0.5em] font-bold">
+                <div class="flex gap-3">
+                    <button @click="showDutyModal = false" class="flex-1 py-3 text-[10px] font-black uppercase opacity-40">Zrušit</button>
+                    <button @click="verifyDutyCode" class="flex-1 py-3 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase shadow-lg shadow-red-900/20">Aktivovat</button>
                 </div>
             </div>
         </div>
@@ -203,7 +221,7 @@
                     </div>
                 </div>
                 <div class="mt-8 flex justify-end gap-3 border-t dark:border-slate-800 pt-4">
-                    <button @click="showEditorModal = false" class="px-4 py-2 text-xs font-bold uppercase text-slate-400 hover:text-white">Zavřít</button>
+                    <button @click="showEditorModal = false" class="px-4 py-2 text-xs font-bold uppercase text-slate-400 hover:text-white transition-colors">Zavřít</button>
                     <button @click="saveEntry" class="px-8 py-3 orange-gradient text-white rounded-xl font-black uppercase text-[10px] shadow-lg hover:scale-105 transition-transform">Uložit do databáze</button>
                 </div>
             </div>
@@ -234,6 +252,8 @@
                     auditLogs: [],
                     selectedItem: null,
                     showEditorModal: false,
+                    showDutyModal: false,
+                    dutyInputCode: '',
                     currentEditorData: { id: null, title: '', subtitle: '', type: 'Zákon', content: '' }
                 }
             },
@@ -243,25 +263,17 @@
             },
             methods: {
                 startCountdown() {
-                    // Nastavení 30 dnů od nynějška
                     const targetDate = new Date();
                     targetDate.setDate(targetDate.getDate() + 30);
-
                     this.countdownTimer = setInterval(() => {
                         const now = new Date().getTime();
                         const distance = targetDate.getTime() - now;
-
                         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
                         const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                         const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
                         const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
                         this.emergencyCountdown = `${days}d ${hours}h ${minutes}m ${seconds}s`;
-
-                        if (distance < 0) {
-                            clearInterval(this.countdownTimer);
-                            this.emergencyCountdown = "VYPRŠELO";
-                        }
+                        if (distance < 0) { clearInterval(this.countdownTimer); this.emergencyCountdown = "VYPRŠELO"; }
                     }, 1000);
                 },
                 toggleLamp() { this.lampSwitchedOn = !this.lampSwitchedOn },
@@ -277,23 +289,14 @@
 
                 async handleAuth() {
                     if (!this.authForm.username || !this.authForm.password) return alert("Vyplňte všechna pole.");
-
                     if (this.authMode === 'LOGIN') {
-                        const { data: user, error } = await _supabase.from('profiles').select('*').eq('nickname', this.authForm.username).single();
-                        
-                        if (user && user.password === this.authForm.password) {
-                            this.loginSuccess(user);
-                        } else {
-                            alert("Chybné jméno nebo heslo.");
-                        }
+                        const { data: user } = await _supabase.from('profiles').select('*').eq('nickname', this.authForm.username).single();
+                        if (user && user.password === this.authForm.password) this.loginSuccess(user);
+                        else alert("Chybné jméno nebo heslo.");
                     } else {
                         const { error } = await _supabase.from('profiles').insert([{ nickname: this.authForm.username, password: this.authForm.password }]);
-                        if (!error) {
-                            alert("Registrace úspěšná! Nyní se přihlaste.");
-                            this.authMode = 'LOGIN';
-                        } else {
-                            alert("Chyba: " + error.message);
-                        }
+                        if (!error) { alert("Registrace úspěšná! Nyní se přihlaste."); this.authMode = 'LOGIN'; }
+                        else alert("Chyba: " + error.message);
                     }
                 },
 
@@ -312,19 +315,26 @@
                     localStorage.clear();
                 },
 
-                requestAdminDuty() {
+                handleDutyToggle() {
                     if (this.adminDuty) {
-                        if (confirm("Ukončit Admin Duty?")) {
-                            this.adminDuty = false;
-                            this.addLog("Deaktivace Admin Duty", "System");
-                        }
-                        return;
+                        this.adminDuty = false;
+                        this.view = 'laws'; // Při odhlášení z duty přepne zpět na zákony
+                        this.addLog("Deaktivace Admin Duty", "System");
+                    } else {
+                        this.dutyInputCode = '';
+                        this.showDutyModal = true;
                     }
-                    const code = prompt("Zadejte kód pro Duty:");
-                    if (code === "216726") {
+                },
+
+                verifyDutyCode() {
+                    if (this.dutyInputCode === "216726") {
                         this.adminDuty = true;
+                        this.showDutyModal = false;
                         this.addLog("Aktivace Admin Duty", "System");
-                    } else if (code !== null) alert("Nesprávný kód.");
+                    } else {
+                        alert("Nesprávný kód.");
+                        this.dutyInputCode = '';
+                    }
                 },
 
                 async saveEntry() {
@@ -336,10 +346,8 @@
                         content: this.currentEditorData.content,
                         subtitle: this.currentEditorData.subtitle
                     };
-
                     if (isEdit) await _supabase.from('entries').update(payload).eq('id', isEdit);
                     else await _supabase.from('entries').insert([payload]);
-                    
                     await this.addLog(this.currentEditorData.title, action);
                     this.showEditorModal = false;
                     this.fetchData();
