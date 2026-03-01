@@ -55,6 +55,9 @@
                 <div class="lamp-stick w-[8px] h-[130px] bg-[#334155] absolute bottom-[12px]"></div>
                 <div class="lamp-base w-[90px] h-[10px] bg-[#334155] rounded-[5px] mt-[130px]"></div>
                 <div @click="toggleLamp" class="pull-cord-container"><div class="pull-cord"></div></div>
+                <div v-if="!lampSwitchedOn" class="absolute -bottom-10 whitespace-nowrap text-[10px] font-black uppercase tracking-widest opacity-40 animate-pulse">
+                    Zatáhni pro přístup
+                </div>
             </div>
             
             <div v-if="lampSwitchedOn" class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl animate__animated animate__fadeInUp">
@@ -251,6 +254,15 @@
             </div>
         </div>
 
+        <div v-if="errorNotification" class="fixed inset-0 z-[7000] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md animate__animated animate__zoomIn">
+            <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-[2rem] p-8 shadow-2xl text-center border-2 border-brand/20">
+                <div class="w-16 h-16 bg-brand/10 text-brand rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-black italic">!</div>
+                <h3 class="text-xl font-black uppercase italic dark:text-white mb-2">Upozornění</h3>
+                <p class="text-[11px] opacity-60 uppercase mb-8 leading-relaxed">{{ errorNotification }}</p>
+                <button @click="errorNotification = null" class="w-full py-4 orange-gradient text-white rounded-xl text-[10px] font-black uppercase shadow-lg">Rozumím</button>
+            </div>
+        </div>
+
         <div v-if="showEditorModal" class="fixed inset-0 z-[4000] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-sm animate__animated animate__zoomIn">
             <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <h2 class="text-xl font-black mb-6 dark:text-white uppercase italic border-b dark:border-slate-800 pb-2">Editor dokumentu</h2>
@@ -324,6 +336,7 @@
                     showEditorModal: false,
                     showDutyModal: false,
                     itemToDelete: null,
+                    errorNotification: null,
                     dutyInputCode: '',
                     currentEditorData: { id: null, title: '', subtitle: '', type: 'Zákon', content: '' },
                     presenceChannel: null
@@ -389,14 +402,22 @@
                 },
                 getFilteredEntries(type) { return this.entries.filter(e => e.type === type); },
                 async handleAuth() {
-                    if (!this.authForm.username || !this.authForm.password) return alert("Vyplňte všechna pole.");
+                    if (!this.authForm.username || !this.authForm.password) {
+                        this.errorNotification = "Vyplňte prosím všechna pole pro pokračování.";
+                        return;
+                    }
                     if (this.authMode === 'LOGIN') {
                         const { data: user } = await _supabase.from('profiles').select('*').eq('nickname', this.authForm.username).single();
                         if (user && user.password === this.authForm.password) this.loginSuccess(user);
-                        else alert("Chybné údaje.");
+                        else this.errorNotification = "Chybné jméno nebo heslo. Zkuste to znovu.";
                     } else {
                         const { error } = await _supabase.from('profiles').insert([{ nickname: this.authForm.username, password: this.authForm.password }]);
-                        if (!error) { alert("Hotovo, přihlaste se."); this.authMode = 'LOGIN'; }
+                        if (!error) { 
+                            this.errorNotification = "Účet byl úspěšně vytvořen! Nyní se můžete přihlásit."; 
+                            this.authMode = 'LOGIN'; 
+                        } else {
+                            this.errorNotification = "Při registraci došlo k chybě. Uživatel možná již existuje.";
+                        }
                     }
                 },
                 loginSuccess(user) {
@@ -420,7 +441,10 @@
                 },
                 verifyDutyCode() {
                     if (this.dutyInputCode === "216726") { this.adminDuty = true; this.showDutyModal = false; this.addLog("On Duty", "System"); }
-                    else alert("Chyba.");
+                    else {
+                        this.errorNotification = "Neplatný autorizační kód. Přístup odepřen.";
+                        this.showDutyModal = false;
+                    }
                 },
                 async saveEntry() {
                     const isEdit = this.currentEditorData.id;
