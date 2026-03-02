@@ -149,7 +149,7 @@
                             <div v-for="log in publicAuditLogs" :key="log.id" class="flex justify-between items-center text-[10px] p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg">
                                 <span class="opacity-50 font-bold uppercase">{{ new Date(log.timestamp).toLocaleDateString() }}</span>
                                 <span class="font-black uppercase italic">{{ log.target }}</span>
-                                <span :class="log.action === 'Smazáno' ? 'text-red-500' : 'text-brand'">{{ log.action }}</span>
+                                <span :class="log.action === 'Smazáno' ? 'text-brand' : 'text-red-500'">{{ log.action }}</span>
                             </div>
                         </div>
                     </div>
@@ -282,7 +282,7 @@
                             <input v-model="naborData.telefon" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-brand transition-all text-xs">
                         </div>
                         <div class="col-span-2 md:col-span-1">
-                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">E-mail</label>
+                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">E-mail (Discord Nickname)</label>
                             <input v-model="naborData.email" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-brand transition-all text-xs">
                         </div>
                     </div>
@@ -418,7 +418,7 @@
         const SUPABASE_URL = 'https://hwnixtvddkkbyehugpph.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3bml4dHZkZGtrYnllaHVncHBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNTI3MzUsImV4cCI6MjA4NzgyODczNX0.xVDxIe-kXPR6Fs626cnmdoK6U8m2USHuiyRPZp2VkeI';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1478095908678926532/dMfxWkenMbe6ao2fQ8zRnkHuG8uepKK6WhkQsD1fpex0pFzxQNm0AmDTfcIc88oyISVo';
+        const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1344422209733201940/A9_P_W5D8YpM_9YqL0U3E0h6S7y2t2r1I0B9C8D7E6F5G4H3I2J1K0L9M8N7O6P5';
 
         createApp({
             data() {
@@ -464,9 +464,11 @@
             },
             methods: {
                 startCountdown() {
+                    const targetDate = new Date(2026, 2, 31, 20, 0, 0).getTime();
                     setInterval(() => {
-                        const targetDate = new Date(); targetDate.setDate(targetDate.getDate() + 30);
-                        const distance = targetDate.getTime() - new Date().getTime();
+                        const now = new Date().getTime();
+                        const distance = targetDate - now;
+                        if (distance < 0) { this.emergencyCountdown = "UKONČENO"; return; }
                         const days = Math.floor(distance / (1000 * 60 * 60 * 24));
                         const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
                         const min = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
@@ -486,31 +488,19 @@
                 toggleTheme() { this.darkMode = !this.darkMode; document.documentElement.classList.toggle('dark', this.darkMode); },
                 toggleEmergency() { this.emergencyMode = !this.emergencyMode; },
                 async fetchData() {
-                    console.log("Stahuji data ze Supabase...");
-                    const { data: ent, error: entError } = await _supabase.from('entries').select('*').order('created_at', { ascending: false });
-                    if (entError) console.error("CHYBA ENTRIES:", entError);
-                    if (ent) {
-                        this.entries = ent;
-                        console.log("NAČTENÉ DOKUMENTY:", ent);
-                    }
-
+                    const { data: ent } = await _supabase.from('entries').select('*').order('created_at', { ascending: false });
+                    if (ent) this.entries = ent;
                     const { data: logs } = await _supabase.from('audit_logs').select('*').order('timestamp', { ascending: false });
                     if (logs) this.auditLogs = logs;
-
                     const { data: adv } = await _supabase.from('advokati').select('*').order('jmeno', { ascending: true });
                     if (adv) this.advokatiList = adv;
                 },
                 getFilteredEntries(type) {
                     const q = this.searchQuery.toLowerCase();
-                    // Robustní filtr: Odstraní diakritiku a mezery pro porovnání
                     return this.entries.filter(e => {
                         const entryType = e.type.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
                         const targetType = type.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
-                        
-                        const matchesType = entryType === targetType;
-                        const matchesSearch = e.title.toLowerCase().includes(q) || e.subtitle.toLowerCase().includes(q);
-                        
-                        return matchesType && matchesSearch;
+                        return entryType === targetType && (e.title.toLowerCase().includes(q) || e.subtitle.toLowerCase().includes(q));
                     });
                 },
                 async handleAuth() {
