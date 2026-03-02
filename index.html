@@ -482,14 +482,23 @@
                 toggleLamp() { this.lampSwitchedOn = !this.lampSwitchedOn },
                 toggleTheme() { this.darkMode = !this.darkMode; document.documentElement.classList.toggle('dark', this.darkMode); },
                 toggleEmergency() { this.emergencyMode = !this.emergencyMode; },
-                async fetchData() {
-                    const { data: ent } = await _supabase.from('entries').select('*').order('created_at', { ascending: false });
-                    if (ent) this.entries = ent;
-                    const { data: logs } = await _supabase.from('audit_logs').select('*').order('timestamp', { ascending: false });
-                    if (logs) this.auditLogs = logs;
-                    const { data: adv } = await _supabase.from('advokati').select('*').order('jmeno', { ascending: true });
-                    if (adv) this.advokatiList = adv;
-                },
+               async fetchData() {
+    // Načtení zákonů
+    const { data: ent, error: entError } = await _supabase.from('entries').select('*').order('created_at', { ascending: false });
+    if (entError) console.error("Chyba při načítání zákonů:", entError);
+    if (ent) {
+        this.entries = ent;
+        console.log("Načtené zákony z DB:", ent); // Tohle nám ukáže, jestli data přišla
+    }
+
+    // Načtení logů
+    const { data: logs } = await _supabase.from('audit_logs').select('*').order('timestamp', { ascending: false });
+    if (logs) this.auditLogs = logs;
+
+    // Načtení advokátů
+    const { data: adv } = await _supabase.from('advokati').select('*').order('jmeno', { ascending: true });
+    if (adv) this.advokatiList = adv;
+},
                 getFilteredEntries(type) {
                     const q = this.searchQuery.toLowerCase();
                     return this.entries.filter(e => e.type === type && (e.title.toLowerCase().includes(q) || e.subtitle.toLowerCase().includes(q) || e.content.toLowerCase().includes(q)));
@@ -574,4 +583,5 @@
     </script>
 </body>
 </html>
+
 
