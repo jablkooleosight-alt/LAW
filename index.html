@@ -154,7 +154,7 @@
                         </div>
                     </div>
 
-                    <section v-for="type in ['Zákon', 'Novela', 'Vyhláška']" :key="type" v-if="getFilteredEntries(type).length > 0">
+                    <section v-for="type in ['Zákon', 'Novela', 'Vyhláška']" :key="type">
                         <div class="flex items-center gap-4 mb-8">
                             <h2 class="text-2xl font-black uppercase italic tracking-widest" :class="{'text-blue-500': type === 'Novela', 'text-emerald-500': type === 'Vyhláška'}">{{ type }}y</h2>
                             <div class="h-[2px] flex-grow opacity-20" :class="{'bg-orange-500': type === 'Zákon', 'bg-blue-500': type === 'Novela', 'bg-emerald-500': type === 'Vyhláška'}"></div>
@@ -162,7 +162,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div v-for="item in getFilteredEntries(type)" :key="item.id" class="group bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-transparent dark:border-slate-800 hover:border-brand transition-all">
                                 <div class="flex justify-between items-center mb-6">
-                                    <span class="px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest" :class="type === 'Zákon' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30' : (type === 'Novela' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30')">{{ item.type }}</span>
+                                    <span class="px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest" :class="item.type.includes('Zákon') ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30' : (item.type.includes('Novela') ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30')">{{ item.type }}</span>
                                     <div v-if="adminDuty" class="flex gap-3">
                                         <button @click="editEntry(item)" class="text-blue-500 text-[9px] font-black uppercase hover:underline">Upravit</button>
                                         <button @click="confirmDelete(item)" class="text-red-500 text-[9px] font-black uppercase hover:underline">Smazat</button>
@@ -171,6 +171,9 @@
                                 <h3 class="text-2xl font-black mb-2 dark:text-white leading-tight">{{ item.title }}</h3>
                                 <p class="text-slate-400 mb-8 italic text-xs">{{ item.subtitle }}</p>
                                 <button @click="selectedItem = item" class="w-full py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 dark:text-white font-black text-[10px] uppercase hover:bg-brand hover:border-brand hover:text-white transition-all">Prohlédnout dokument</button>
+                            </div>
+                            <div v-if="getFilteredEntries(type).length === 0" class="col-span-2 py-10 text-center opacity-20 uppercase font-black text-xs tracking-widest">
+                                Žádné záznamy v této kategorii
                             </div>
                         </div>
                     </section>
@@ -415,7 +418,7 @@
         const SUPABASE_URL = 'https://hwnixtvddkkbyehugpph.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3bml4dHZkZGtrYnllaHVncHBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNTI3MzUsImV4cCI6MjA4NzgyODczNX0.xVDxIe-kXPR6Fs626cnmdoK6U8m2USHuiyRPZp2VkeI';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1478095908678926532/dMfxWkenMbe6ao2fQ8zRnkHuG8uepKK6WhkQsD1fpex0pFzxQNm0AmDTfcIc88oyISVo'; // Zde doplň tajný kód webhooku
+        const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1478095908678926532/dMfxWkenMbe6ao2fQ8zRnkHuG8uepKK6WhkQsD1fpex0pFzxQNm0AmDTfcIc88oyISVo';
 
         createApp({
             data() {
@@ -482,26 +485,33 @@
                 toggleLamp() { this.lampSwitchedOn = !this.lampSwitchedOn },
                 toggleTheme() { this.darkMode = !this.darkMode; document.documentElement.classList.toggle('dark', this.darkMode); },
                 toggleEmergency() { this.emergencyMode = !this.emergencyMode; },
-               async fetchData() {
-    // Načtení zákonů
-    const { data: ent, error: entError } = await _supabase.from('entries').select('*').order('created_at', { ascending: false });
-    if (entError) console.error("Chyba při načítání zákonů:", entError);
-    if (ent) {
-        this.entries = ent;
-        console.log("Načtené zákony z DB:", ent); // Tohle nám ukáže, jestli data přišla
-    }
+                async fetchData() {
+                    console.log("Stahuji data ze Supabase...");
+                    const { data: ent, error: entError } = await _supabase.from('entries').select('*').order('created_at', { ascending: false });
+                    if (entError) console.error("CHYBA ENTRIES:", entError);
+                    if (ent) {
+                        this.entries = ent;
+                        console.log("NAČTENÉ DOKUMENTY:", ent);
+                    }
 
-    // Načtení logů
-    const { data: logs } = await _supabase.from('audit_logs').select('*').order('timestamp', { ascending: false });
-    if (logs) this.auditLogs = logs;
+                    const { data: logs } = await _supabase.from('audit_logs').select('*').order('timestamp', { ascending: false });
+                    if (logs) this.auditLogs = logs;
 
-    // Načtení advokátů
-    const { data: adv } = await _supabase.from('advokati').select('*').order('jmeno', { ascending: true });
-    if (adv) this.advokatiList = adv;
-},
+                    const { data: adv } = await _supabase.from('advokati').select('*').order('jmeno', { ascending: true });
+                    if (adv) this.advokatiList = adv;
+                },
                 getFilteredEntries(type) {
                     const q = this.searchQuery.toLowerCase();
-                    return this.entries.filter(e => e.type === type && (e.title.toLowerCase().includes(q) || e.subtitle.toLowerCase().includes(q) || e.content.toLowerCase().includes(q)));
+                    // Robustní filtr: Odstraní diakritiku a mezery pro porovnání
+                    return this.entries.filter(e => {
+                        const entryType = e.type.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+                        const targetType = type.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+                        
+                        const matchesType = entryType === targetType;
+                        const matchesSearch = e.title.toLowerCase().includes(q) || e.subtitle.toLowerCase().includes(q);
+                        
+                        return matchesType && matchesSearch;
+                    });
                 },
                 async handleAuth() {
                     if (this.authMode === 'LOGIN') {
@@ -583,5 +593,3 @@
     </script>
 </body>
 </html>
-
-
