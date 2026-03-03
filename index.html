@@ -503,12 +503,10 @@
                     }
                 },
                 subscribeToChanges() {
-                    // Sledování změn v tabulce advokátů pro okamžitý update seznamu
-                    _supabase.channel('custom-all-channel')
+                    _supabase.channel('gov-realtime')
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'advokati' }, () => {
                         this.fetchData();
                     })
-                    // Sledování změn v dokumentech a logách
                     .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, () => {
                         this.fetchData();
                     })
@@ -559,7 +557,7 @@
                     if (this.adminDuty) { 
                         this.adminDuty = false; 
                         this.addLog("System", "Off Duty"); 
-                        await this.updatePresence(); // Okamžitá aktualizace stavu pro ostatní
+                        await this.updatePresence();
                     }
                     else { 
                         this.dutyInputCode = ''; 
@@ -571,7 +569,7 @@
                         this.adminDuty = true; 
                         this.showDutyModal = false; 
                         this.addLog("System", "On Duty"); 
-                        await this.updatePresence(); // Okamžitá aktualizace stavu pro ostatní
+                        await this.updatePresence();
                     }
                     else { 
                         this.errorNotification = "Neplatný kód."; 
@@ -613,10 +611,14 @@
                     } catch { this.errorNotification = "Chyba při odesílání na Discord."; }
                 },
                 async saveAdvokat() {
-                    await _supabase.from('advokati').insert([this.newAdvokat]);
-                    this.addLog(this.newAdvokat.jmeno, "Přidán advokát");
-                    this.showAdvokatAddModal = false; 
-                    this.newAdvokat = { jmeno: '', titul: '', email: '', telefon: '' };
+                    const { error } = await _supabase.from('advokati').insert([this.newAdvokat]);
+                    if (!error) {
+                        this.addLog(this.newAdvokat.jmeno, "Přidán advokát");
+                        this.showAdvokatAddModal = false; 
+                        this.newAdvokat = { jmeno: '', titul: '', email: '', telefon: '' };
+                    } else {
+                        this.errorNotification = "Chyba při ukládání advokáta.";
+                    }
                 },
                 async deleteAdvokat(id) {
                     await _supabase.from('advokati').delete().eq('id', id);
