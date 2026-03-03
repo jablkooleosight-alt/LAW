@@ -156,7 +156,7 @@
 
                     <section v-for="type in ['Zákon', 'Novela', 'Vyhláška']" :key="type">
                         <div class="flex items-center gap-4 mb-8">
-                            <h2 class="text-2xl font-black uppercase italic tracking-widest" :class="{'text-blue-500': type === 'Novela', 'text-emerald-500': type === 'Vyhláška'}">{{ type }}y</h2>
+                            <h2 class="text-2xl font-black uppercase italic tracking-widest" :class="{'text-blue-500': type === 'Novela', 'text-emerald-500': type === 'Vyhláška'}">{{ type }}</h2>
                             <div class="h-[2px] flex-grow opacity-20" :class="{'bg-orange-500': type === 'Zákon', 'bg-blue-500': type === 'Novela', 'bg-emerald-500': type === 'Vyhláška'}"></div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -583,3 +583,4 @@
     </script>
 </body>
 </html>
+
