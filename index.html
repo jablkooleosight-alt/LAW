@@ -149,7 +149,7 @@
                             <div v-for="log in publicAuditLogs" :key="log.id" class="flex justify-between items-center text-[10px] p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg">
                                 <span class="opacity-50 font-bold uppercase">{{ new Date(log.timestamp).toLocaleDateString() }}</span>
                                 <span class="font-black uppercase italic">{{ log.target }}</span>
-                                <span :class="log.action === 'Smazáno' ? 'text-brand' : 'text-red-500'">{{ log.action }}</span>
+                                <span :class="log.action === 'Smazáno' ? 'text-red-500' : 'text-brand'">{{ log.action }}</span>
                             </div>
                         </div>
                     </div>
@@ -463,7 +463,11 @@
                 }
             },
             mounted() {
-                if (this.isLoggedIn) { this.fetchData(); this.initPresence(); }
+                if (this.isLoggedIn) { 
+                    this.fetchData(); 
+                    this.initPresence(); 
+                    this.subscribeToChanges();
+                }
                 this.startCountdown();
             },
             methods: {
@@ -484,10 +488,35 @@
                     this.presenceChannel = _supabase.channel('online-users', { config: { presence: { key: this.nickname } } });
                     this.presenceChannel.on('presence', { event: 'sync' }, () => {
                         const state = this.presenceChannel.presenceState();
-                        this.onlineUsers = Object.keys(state).map(key => ({ id: key, name: key, isAdmin: state[key][0].isAdmin }));
-                    }).subscribe(async (s) => { if (s === 'SUBSCRIBED') await this.updatePresence(); });
+                        this.onlineUsers = Object.keys(state).map(key => ({ 
+                            id: key, 
+                            name: key, 
+                            isAdmin: state[key][0]?.isAdmin || false 
+                        }));
+                    }).subscribe(async (s) => { 
+                        if (s === 'SUBSCRIBED') await this.updatePresence(); 
+                    });
                 },
-                async updatePresence() { if (this.presenceChannel) await this.presenceChannel.track({ isAdmin: this.adminDuty }); },
+                async updatePresence() { 
+                    if (this.presenceChannel) {
+                        await this.presenceChannel.track({ isAdmin: this.adminDuty }); 
+                    }
+                },
+                subscribeToChanges() {
+                    // Sledování změn v tabulce advokátů pro okamžitý update seznamu
+                    _supabase.channel('custom-all-channel')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'advokati' }, () => {
+                        this.fetchData();
+                    })
+                    // Sledování změn v dokumentech a logách
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, () => {
+                        this.fetchData();
+                    })
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'audit_logs' }, () => {
+                        this.fetchData();
+                    })
+                    .subscribe();
+                },
                 toggleLamp() { this.lampSwitchedOn = !this.lampSwitchedOn },
                 toggleTheme() { this.darkMode = !this.darkMode; document.documentElement.classList.toggle('dark', this.darkMode); },
                 toggleEmergency() { this.emergencyMode = !this.emergencyMode; },
@@ -520,16 +549,34 @@
                 loginSuccess(user) {
                     this.isLoggedIn = true; this.nickname = user.nickname;
                     localStorage.setItem('sa_logged_in', 'true'); localStorage.setItem('sa_nick', user.nickname);
-                    this.addLog("Login", "Vstup"); this.fetchData(); this.initPresence();
+                    this.addLog("Login", "Vstup"); 
+                    this.fetchData(); 
+                    this.initPresence();
+                    this.subscribeToChanges();
                 },
                 logout() { localStorage.clear(); location.reload(); },
-                handleDutyToggle() {
-                    if (this.adminDuty) { this.adminDuty = false; this.addLog("System", "Off Duty"); }
-                    else { this.dutyInputCode = ''; this.showDutyModal = true; }
+                async handleDutyToggle() {
+                    if (this.adminDuty) { 
+                        this.adminDuty = false; 
+                        this.addLog("System", "Off Duty"); 
+                        await this.updatePresence(); // Okamžitá aktualizace stavu pro ostatní
+                    }
+                    else { 
+                        this.dutyInputCode = ''; 
+                        this.showDutyModal = true; 
+                    }
                 },
-                verifyDutyCode() {
-                    if (this.dutyInputCode === "216726") { this.adminDuty = true; this.showDutyModal = false; this.addLog("System", "On Duty"); this.updatePresence(); }
-                    else { this.errorNotification = "Neplatný kód."; this.showDutyModal = false; }
+                async verifyDutyCode() {
+                    if (this.dutyInputCode === "216726") { 
+                        this.adminDuty = true; 
+                        this.showDutyModal = false; 
+                        this.addLog("System", "On Duty"); 
+                        await this.updatePresence(); // Okamžitá aktualizace stavu pro ostatní
+                    }
+                    else { 
+                        this.errorNotification = "Neplatný kód."; 
+                        this.showDutyModal = false; 
+                    }
                 },
                 async saveEntry() {
                     const id = this.currentEditorData.id;
@@ -537,13 +584,13 @@
                     if (id) await _supabase.from('entries').update(payload).eq('id', id);
                     else await _supabase.from('entries').insert([payload]);
                     this.addLog(payload.title, id ? "Úprava" : "Vytvořeno");
-                    this.showEditorModal = false; this.fetchData();
+                    this.showEditorModal = false; 
                 },
                 confirmDelete(item) { this.itemToDelete = item; },
                 async executeDelete() {
                     await _supabase.from('entries').delete().eq('id', this.itemToDelete.id);
                     this.addLog(this.itemToDelete.title, "Smazáno");
-                    this.itemToDelete = null; this.fetchData();
+                    this.itemToDelete = null; 
                 },
                 startNaborForm() { this.showNaborInfoModal = false; this.showNaborForm = true; },
                 async submitNabor() {
@@ -568,17 +615,15 @@
                 async saveAdvokat() {
                     await _supabase.from('advokati').insert([this.newAdvokat]);
                     this.addLog(this.newAdvokat.jmeno, "Přidán advokát");
-                    this.showAdvokatAddModal = false; this.fetchData();
+                    this.showAdvokatAddModal = false; 
                     this.newAdvokat = { jmeno: '', titul: '', email: '', telefon: '' };
                 },
                 async deleteAdvokat(id) {
                     await _supabase.from('advokati').delete().eq('id', id);
                     this.addLog("Seznam advokátů", "Smazán záznam");
-                    this.fetchData();
                 },
                 async addLog(target, action) {
                     await _supabase.from('audit_logs').insert([{ username: this.nickname, target: target, action: action }]);
-                    this.fetchData();
                 },
                 createNewEntry() { this.currentEditorData = { id: null, title: '', subtitle: '', type: 'Zákon', content: '' }; this.showEditorModal = true; },
                 editEntry(item) { this.currentEditorData = { ...item }; this.showEditorModal = true; }
