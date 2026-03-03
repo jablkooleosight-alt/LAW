@@ -149,16 +149,14 @@
                             <div v-for="log in publicAuditLogs" :key="log.id" class="flex justify-between items-center text-[10px] p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg">
                                 <span class="opacity-50 font-bold uppercase">{{ new Date(log.timestamp).toLocaleDateString() }}</span>
                                 <span class="font-black uppercase italic">{{ log.target }}</span>
-                                <span :class="log.action === 'Smazáno' ? 'text-red-500' : 'text-brand'">{{ log.action }}</span>
+                                <span :class="log.action === 'Smazáno' ? 'text-brand' : 'text-red-500'">{{ log.action }}</span>
                             </div>
                         </div>
                     </div>
 
                     <section v-for="type in ['Zákon', 'Novela', 'Vyhláška']" :key="type">
                         <div class="flex items-center gap-4 mb-8">
-                            <h2 class="text-2xl font-black uppercase italic tracking-widest" :class="{'text-blue-500': type === 'Novela', 'text-emerald-500': type === 'Vyhláška'}">
-                                {{ type === 'Zákon' ? 'Zákony' : (type === 'Novela' ? 'Novely' : 'Vyhlášky') }}
-                            </h2>
+                            <h2 class="text-2xl font-black uppercase italic tracking-widest" :class="{'text-blue-500': type === 'Novela', 'text-emerald-500': type === 'Vyhláška'}">{{ type }}</h2>
                             <div class="h-[2px] flex-grow opacity-20" :class="{'bg-orange-500': type === 'Zákon', 'bg-blue-500': type === 'Novela', 'bg-emerald-500': type === 'Vyhláška'}"></div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -196,7 +194,6 @@
                             <div class="mt-4 space-y-1">
                                 <p class="text-[10px] opacity-40 uppercase">Kontakt:</p>
                                 <p class="text-xs font-bold">{{ advokat.email }}</p>
-                                <p v-if="advokat.telefon" class="text-xs font-bold">{{ advokat.telefon }}</p>
                             </div>
                             <button v-if="adminDuty" @click="deleteAdvokat(advokat.id)" class="absolute top-4 right-4 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
                         </div>
@@ -229,12 +226,35 @@
         <div v-if="showNaborInfoModal" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-md animate__animated animate__fadeIn">
             <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] p-10 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <div class="border-b dark:border-slate-800 pb-6 mb-6">
-                    <h2 class="text-2xl font-black uppercase italic tracking-tighter">📜 Podmínky pro podání žádosti</h2>
+                    <h2 class="text-2xl font-black uppercase italic italic tracking-tighter">📜 Podmínky pro podání žádosti</h2>
                     <p class="text-[10px] opacity-40 uppercase font-bold mt-1">Zařazení do seznamu advokátů pro výkon obhajoby ex offo</p>
                 </div>
                 <div class="space-y-6 text-sm leading-relaxed opacity-80">
-                    <section><h4 class="font-black uppercase text-xs text-brand mb-2 italic">I. Základní předpoklady</h4><ul class="list-disc ml-5 space-y-1"><li>Být osobou způsobilou k výkonu advokacie.</li><li>Minimální věk 21 let.</li><li>Plná občanská bezúhonnost.</li></ul></section>
-                    <section><h4 class="font-black uppercase text-xs text-brand mb-2 italic">II. Odborná způsobilost</h4><ul class="list-disc ml-5 space-y-1"><li>Znalost trestního práva hmotného i procesního.</li><li>Schopnost samostatného zastupování před soudem.</li></ul></section>
+                    <section>
+                        <h4 class="font-black uppercase text-xs text-brand mb-2 italic">I. Základní předpoklady</h4>
+                        <ul class="list-disc ml-5 space-y-1">
+                            <li>Být osobou způsobilou k výkonu advokacie.</li>
+                            <li>Minimální věk 21 let.</li>
+                            <li>Plná občanská bezúhonnost.</li>
+                            <li>Žádný střet zájmů.</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h4 class="font-black uppercase text-xs text-brand mb-2 italic">II. Odborná způsobilost</h4>
+                        <ul class="list-disc ml-5 space-y-1">
+                            <li>Znalost trestního práva hmotného i procesního.</li>
+                            <li>Schopnost samostatného zastupování před soudem.</li>
+                            <li>Vypracování procesních podání a opravných prostředků.</li>
+                        </ul>
+                    </section>
+                    <section>
+                        <h4 class="font-black uppercase text-xs text-brand mb-2 italic">III. Morální předpoklady</h4>
+                        <p>Čestné, důstojné a nezávislé jednání. Absolutní mlčenlivost o skutečnostech z výkonu povolání.</p>
+                    </section>
+                    <section>
+                        <h4 class="font-black uppercase text-xs text-brand mb-2 italic">IV. Organizační způsobilost</h4>
+                        <p>Reakce na ustanovení soudem do 24h, účast na vazebních zasedáních a řádné vedení spisu.</p>
+                    </section>
                 </div>
                 <div class="mt-10 flex gap-4">
                     <button @click="showNaborInfoModal = false" class="flex-1 py-4 bg-slate-100 dark:bg-slate-800 rounded-2xl font-black uppercase text-[10px]">Zpět</button>
@@ -246,14 +266,61 @@
         <div v-if="showNaborForm" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-md animate__animated animate__zoomIn">
             <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] p-10 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <h2 class="text-2xl font-black uppercase italic tracking-tighter mb-8 border-b dark:border-slate-800 pb-4">📄 Náborový formulář – Advokát</h2>
+                
                 <div class="space-y-8">
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="col-span-2 md:col-span-1"><label class="text-[9px] font-black uppercase opacity-40 ml-2">Jméno a příjmení</label><input v-model="naborData.jmeno" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs"></div>
-                        <div class="col-span-2 md:col-span-1"><label class="text-[9px] font-black uppercase opacity-40 ml-2">Titul</label><input v-model="naborData.titul" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs"></div>
-                        <div class="col-span-2 md:col-span-1"><label class="text-[9px] font-black uppercase opacity-40 ml-2">Telefon</label><input v-model="naborData.telefon" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs"></div>
-                        <div class="col-span-2 md:col-span-1"><label class="text-[9px] font-black uppercase opacity-40 ml-2">E-mail (Discord Nickname)</label><input v-model="naborData.email" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs"></div>
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">Jméno a příjmení</label>
+                            <input v-model="naborData.jmeno" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-brand transition-all text-xs">
+                        </div>
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">Titul</label>
+                            <input v-model="naborData.titul" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-brand transition-all text-xs">
+                        </div>
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">Telefon</label>
+                            <input v-model="naborData.telefon" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-brand transition-all text-xs">
+                        </div>
+                        <div class="col-span-2 md:col-span-1">
+                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">E-mail (Discord Nickname)</label>
+                            <input v-model="naborData.email" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-brand transition-all text-xs">
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="text-[10px] font-black uppercase opacity-40 mb-4 border-l-2 border-brand pl-3">II. Profesní praxe a specializace</h4>
+                        <div class="grid grid-cols-2 gap-6 mt-4">
+                            <div v-for="spec in ['Trestní právo', 'Civilní právo', 'Rodinné právo', 'Insolvenční právo', 'Správní právo']" :key="spec" class="flex items-center gap-3">
+                                <input type="checkbox" :id="spec" v-model="naborData.specializace" :value="spec" class="hidden checkbox-custom">
+                                <label :for="spec" class="flex items-center cursor-pointer group">
+                                    <div class="w-5 h-5 border-2 border-slate-300 dark:border-slate-700 rounded-md box transition-all mr-3"></div>
+                                    <span class="text-[11px] font-bold uppercase opacity-60 group-hover:opacity-100">{{ spec }}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">Předchozí právní praxe (délka, zaměření)</label>
+                            <textarea v-model="naborData.praxeDelsi" class="w-full h-24 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none mt-1 border-2 border-transparent focus:border-brand transition-all text-xs"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold uppercase">Odseděl jste si nějaké měsíce ve vazební věznici?</span>
+                            <div class="flex gap-4">
+                                <button @click="naborData.vazba = true" :class="naborData.vazba ? 'text-brand' : 'opacity-20'" class="font-black text-[10px] uppercase">Ano</button>
+                                <button @click="naborData.vazba = false" :class="!naborData.vazba ? 'text-brand' : 'opacity-20'" class="font-black text-[10px] uppercase">Ne</button>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between border-t dark:border-slate-700 pt-4">
+                            <span class="text-[11px] font-bold uppercase italic text-brand">Časová flexibilita?</span>
+                            <button @click="naborData.flexibilita = !naborData.flexibilita" :class="naborData.flexibilita ? 'bg-brand' : 'bg-slate-300'" class="w-12 h-6 rounded-full relative transition-all">
+                                <div class="w-4 h-4 bg-white rounded-full absolute top-1 transition-all" :style="{left: naborData.flexibilita ? '26px' : '4px'}"></div>
+                            </button>
+                        </div>
                     </div>
                 </div>
+
                 <div class="mt-10 flex gap-4">
                     <button @click="showNaborForm = false" class="flex-1 py-4 font-black uppercase text-[10px] opacity-40">Zrušit</button>
                     <button @click="submitNabor" class="flex-1 py-4 orange-gradient text-white rounded-2xl font-black uppercase text-[10px] shadow-xl">Odeslat přihlášku</button>
@@ -268,7 +335,6 @@
                     <input v-model="newAdvokat.titul" placeholder="Titul (Mgr., JUDr...)" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs">
                     <input v-model="newAdvokat.jmeno" placeholder="Jméno a Příjmení" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs font-bold">
                     <input v-model="newAdvokat.email" placeholder="E-mail" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs">
-                    <input v-model="newAdvokat.telefon" placeholder="Telefonní číslo (IC)" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs">
                 </div>
                 <div class="flex gap-4 mt-8">
                     <button @click="showAdvokatAddModal = false" class="flex-1 py-4 text-[10px] font-black uppercase opacity-40">Zavřít</button>
@@ -322,11 +388,11 @@
                 <h2 class="text-xl font-black mb-6 dark:text-white uppercase italic border-b dark:border-slate-800 pb-2">Editor dokumentu</h2>
                 <div class="space-y-5">
                     <div class="grid grid-cols-2 gap-4">
-                        <div><label class="text-[9px] font-black uppercase opacity-40 ml-2">Název</label><input v-model="currentEditorData.title" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm"></div>
-                        <div><label class="text-[9px] font-black uppercase opacity-40 ml-2">Typ</label><select v-model="currentEditorData.type" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm"><option>Zákon</option><option>Novela</option><option>Vyhláška</option></select></div>
+                        <div><label class="text-[9px] font-black uppercase opacity-40 ml-2">Název</label><input v-model="currentEditorData.title" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm"></div>
+                        <div><label class="text-[9px] font-black uppercase opacity-40 ml-2">Typ</label><select v-model="currentEditorData.type" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm"><option>Zákon</option><option>Novela</option><option>Vyhláška</option></select></div>
                     </div>
-                    <div><label class="text-[9px] font-black uppercase opacity-40 ml-2">Mini popisek</label><input v-model="currentEditorData.subtitle" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm"></div>
-                    <div><label class="text-[9px] font-black uppercase opacity-40 ml-2">Obsah</label><textarea v-model="currentEditorData.content" class="w-full h-64 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm"></textarea></div>
+                    <div><label class="text-[9px] font-black uppercase opacity-40 ml-2">Mini popisek</label><input v-model="currentEditorData.subtitle" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm"></div>
+                    <div><label class="text-[9px] font-black uppercase opacity-40 ml-2">Obsah</label><textarea v-model="currentEditorData.content" class="w-full h-64 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm"></textarea></div>
                 </div>
                 <div class="mt-8 flex justify-end gap-3 border-t dark:border-slate-800 pt-4">
                     <button @click="showEditorModal = false" class="px-4 py-2 text-xs font-bold uppercase text-slate-400">Zavřít</button>
@@ -382,7 +448,7 @@
                     dutyInputCode: '',
                     searchQuery: '',
                     currentEditorData: { id: null, title: '', subtitle: '', type: 'Zákon', content: '' },
-                    newAdvokat: { jmeno: '', titul: '', email: '', telefon: '' },
+                    newAdvokat: { jmeno: '', titul: '', email: '' },
                     naborData: { jmeno: '', titul: '', telefon: '', email: '', specializace: [], praxeDelsi: '', vazba: false, flexibilita: false },
                     presenceChannel: null
                 }
@@ -393,11 +459,7 @@
                 }
             },
             mounted() {
-                if (this.isLoggedIn) { 
-                    this.fetchData(); 
-                    this.initPresence(); 
-                    this.subscribeToChanges();
-                }
+                if (this.isLoggedIn) { this.fetchData(); this.initPresence(); }
                 this.startCountdown();
             },
             methods: {
@@ -418,27 +480,10 @@
                     this.presenceChannel = _supabase.channel('online-users', { config: { presence: { key: this.nickname } } });
                     this.presenceChannel.on('presence', { event: 'sync' }, () => {
                         const state = this.presenceChannel.presenceState();
-                        this.onlineUsers = Object.keys(state).map(key => ({ 
-                            id: key, 
-                            name: key, 
-                            isAdmin: state[key][0]?.isAdmin || false 
-                        }));
-                    }).subscribe(async (s) => { 
-                        if (s === 'SUBSCRIBED') await this.updatePresence(); 
-                    });
+                        this.onlineUsers = Object.keys(state).map(key => ({ id: key, name: key, isAdmin: state[key][0].isAdmin }));
+                    }).subscribe(async (s) => { if (s === 'SUBSCRIBED') await this.updatePresence(); });
                 },
-                async updatePresence() { 
-                    if (this.presenceChannel) {
-                        await this.presenceChannel.track({ isAdmin: this.adminDuty }); 
-                    }
-                },
-                subscribeToChanges() {
-                    _supabase.channel('global-sync')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'advokati' }, () => this.fetchData())
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'entries' }, () => this.fetchData())
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'audit_logs' }, () => this.fetchData())
-                    .subscribe();
-                },
+                async updatePresence() { if (this.presenceChannel) await this.presenceChannel.track({ isAdmin: this.adminDuty }); },
                 toggleLamp() { this.lampSwitchedOn = !this.lampSwitchedOn },
                 toggleTheme() { this.darkMode = !this.darkMode; document.documentElement.classList.toggle('dark', this.darkMode); },
                 toggleEmergency() { this.emergencyMode = !this.emergencyMode; },
@@ -471,34 +516,16 @@
                 loginSuccess(user) {
                     this.isLoggedIn = true; this.nickname = user.nickname;
                     localStorage.setItem('sa_logged_in', 'true'); localStorage.setItem('sa_nick', user.nickname);
-                    this.addLog("Login", "Vstup"); 
-                    this.fetchData(); 
-                    this.initPresence();
-                    this.subscribeToChanges();
+                    this.addLog("Login", "Vstup"); this.fetchData(); this.initPresence();
                 },
                 logout() { localStorage.clear(); location.reload(); },
-                async handleDutyToggle() {
-                    if (this.adminDuty) { 
-                        this.adminDuty = false; 
-                        this.addLog("System", "Off Duty"); 
-                        await this.updatePresence();
-                    }
-                    else { 
-                        this.dutyInputCode = ''; 
-                        this.showDutyModal = true; 
-                    }
+                handleDutyToggle() {
+                    if (this.adminDuty) { this.adminDuty = false; this.addLog("System", "Off Duty"); }
+                    else { this.dutyInputCode = ''; this.showDutyModal = true; }
                 },
-                async verifyDutyCode() {
-                    if (this.dutyInputCode === "216726") { 
-                        this.adminDuty = true; 
-                        this.showDutyModal = false; 
-                        this.addLog("System", "On Duty"); 
-                        await this.updatePresence();
-                    }
-                    else { 
-                        this.errorNotification = "Neplatný kód."; 
-                        this.showDutyModal = false; 
-                    }
+                verifyDutyCode() {
+                    if (this.dutyInputCode === "216726") { this.adminDuty = true; this.showDutyModal = false; this.addLog("System", "On Duty"); this.updatePresence(); }
+                    else { this.errorNotification = "Neplatný kód."; this.showDutyModal = false; }
                 },
                 async saveEntry() {
                     const id = this.currentEditorData.id;
@@ -506,13 +533,13 @@
                     if (id) await _supabase.from('entries').update(payload).eq('id', id);
                     else await _supabase.from('entries').insert([payload]);
                     this.addLog(payload.title, id ? "Úprava" : "Vytvořeno");
-                    this.showEditorModal = false; 
+                    this.showEditorModal = false; this.fetchData();
                 },
                 confirmDelete(item) { this.itemToDelete = item; },
                 async executeDelete() {
                     await _supabase.from('entries').delete().eq('id', this.itemToDelete.id);
                     this.addLog(this.itemToDelete.title, "Smazáno");
-                    this.itemToDelete = null; 
+                    this.itemToDelete = null; this.fetchData();
                 },
                 startNaborForm() { this.showNaborInfoModal = false; this.showNaborForm = true; },
                 async submitNabor() {
@@ -521,47 +548,46 @@
                         color: 16384000,
                         fields: [
                             { name: "Jméno", value: `${this.naborData.titul} ${this.naborData.jmeno}`, inline: true },
-                            { name: "Kontakt", value: `${this.naborData.email} | ${this.naborData.telefon}`, inline: true }
+                            { name: "Kontakt", value: `${this.naborData.email} | ${this.naborData.telefon}`, inline: true },
+                            { name: "Specializace", value: this.naborData.specializace.join(', ') || 'Neuvedeno' },
+                            { name: "Praxe", value: this.naborData.praxeDelsi || 'Neuvedeno' },
+                            { name: "Vazba", value: this.naborData.vazba ? "ANO" : "NE", inline: true },
+                            { name: "Flexibilita", value: this.naborData.flexibilita ? "ANO" : "NE", inline: true }
                         ]
                     };
                     try {
                         await fetch(DISCORD_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ embeds: [embed] }) });
-                        this.errorNotification = "Žádost byla úspěšně odeslána!";
+                        this.errorNotification = "Žádost byla úspěšně odeslána k posouzení!";
                         this.showNaborForm = false;
-                    } catch { this.errorNotification = "Chyba při odesílání."; }
+                    } catch { this.errorNotification = "Chyba při odesílání na Discord."; }
                 },
                 async saveAdvokat() {
-                    // Očištění objektu před odesláním (aby se neposílaly prázdné nebo neexistující klíče)
+                    // OČIŠTĚNÝ PAYLOAD BEZ SLOUPCE TELEFON
                     const payload = {
                         jmeno: this.newAdvokat.jmeno,
                         titul: this.newAdvokat.titul,
-                        email: this.newAdvokat.email,
-                        telefon: this.newAdvokat.telefon
+                        email: this.newAdvokat.email
                     };
-                    
-                    if(!payload.jmeno || !payload.email) {
-                        this.errorNotification = "Jméno a email jsou povinné údaje.";
-                        return;
-                    }
 
                     const { error } = await _supabase.from('advokati').insert([payload]);
+                    
                     if (!error) {
                         this.addLog(payload.jmeno, "Přidán advokát");
                         this.showAdvokatAddModal = false; 
-                        this.newAdvokat = { jmeno: '', titul: '', email: '', telefon: '' };
-                        // Realtime se postará o update, ale pro jistotu:
                         this.fetchData();
+                        this.newAdvokat = { jmeno: '', titul: '', email: '' };
                     } else {
-                        console.error(error);
                         this.errorNotification = "Chyba při ukládání: " + error.message;
                     }
                 },
                 async deleteAdvokat(id) {
                     await _supabase.from('advokati').delete().eq('id', id);
                     this.addLog("Seznam advokátů", "Smazán záznam");
+                    this.fetchData();
                 },
                 async addLog(target, action) {
                     await _supabase.from('audit_logs').insert([{ username: this.nickname, target: target, action: action }]);
+                    this.fetchData();
                 },
                 createNewEntry() { this.currentEditorData = { id: null, title: '', subtitle: '', type: 'Zákon', content: '' }; this.showEditorModal = true; },
                 editEntry(item) { this.currentEditorData = { ...item }; this.showEditorModal = true; }
