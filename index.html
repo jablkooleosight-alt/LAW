@@ -156,7 +156,9 @@
 
                     <section v-for="type in ['Zákon', 'Novela', 'Vyhláška']" :key="type">
                         <div class="flex items-center gap-4 mb-8">
-                            <h2 class="text-2xl font-black uppercase italic tracking-widest" :class="{'text-blue-500': type === 'Novela', 'text-emerald-500': type === 'Vyhláška'}">{{ type }}</h2>
+                            <h2 class="text-2xl font-black uppercase italic tracking-widest" :class="{'text-blue-500': type === 'Novela', 'text-emerald-500': type === 'Vyhláška'}">
+                                {{ type === 'Zákon' ? 'Zákony' : (type === 'Novela' ? 'Novely' : 'Vyhlášky') }}
+                            </h2>
                             <div class="h-[2px] flex-grow opacity-20" :class="{'bg-orange-500': type === 'Zákon', 'bg-blue-500': type === 'Novela', 'bg-emerald-500': type === 'Vyhláška'}"></div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -194,6 +196,7 @@
                             <div class="mt-4 space-y-1">
                                 <p class="text-[10px] opacity-40 uppercase">Kontakt:</p>
                                 <p class="text-xs font-bold">{{ advokat.email }}</p>
+                                <p v-if="advokat.telefon" class="text-xs font-bold">{{ advokat.telefon }}</p>
                             </div>
                             <button v-if="adminDuty" @click="deleteAdvokat(advokat.id)" class="absolute top-4 right-4 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
                         </div>
@@ -335,6 +338,7 @@
                     <input v-model="newAdvokat.titul" placeholder="Titul (Mgr., JUDr...)" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs">
                     <input v-model="newAdvokat.jmeno" placeholder="Jméno a Příjmení" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs font-bold">
                     <input v-model="newAdvokat.email" placeholder="E-mail" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs">
+                    <input v-model="newAdvokat.telefon" placeholder="Telefonní číslo (IC)" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs">
                 </div>
                 <div class="flex gap-4 mt-8">
                     <button @click="showAdvokatAddModal = false" class="flex-1 py-4 text-[10px] font-black uppercase opacity-40">Zavřít</button>
@@ -448,7 +452,7 @@
                     dutyInputCode: '',
                     searchQuery: '',
                     currentEditorData: { id: null, title: '', subtitle: '', type: 'Zákon', content: '' },
-                    newAdvokat: { jmeno: '', titul: '', email: '' },
+                    newAdvokat: { jmeno: '', titul: '', email: '', telefon: '' },
                     naborData: { jmeno: '', titul: '', telefon: '', email: '', specializace: [], praxeDelsi: '', vazba: false, flexibilita: false },
                     presenceChannel: null
                 }
@@ -565,7 +569,7 @@
                     await _supabase.from('advokati').insert([this.newAdvokat]);
                     this.addLog(this.newAdvokat.jmeno, "Přidán advokát");
                     this.showAdvokatAddModal = false; this.fetchData();
-                    this.newAdvokat = { jmeno: '', titul: '', email: '' };
+                    this.newAdvokat = { jmeno: '', titul: '', email: '', telefon: '' };
                 },
                 async deleteAdvokat(id) {
                     await _supabase.from('advokati').delete().eq('id', id);
@@ -583,4 +587,3 @@
     </script>
 </body>
 </html>
-
