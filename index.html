@@ -306,14 +306,14 @@
 
                     <div class="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl space-y-4">
                         <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold uppercase">Máte zkušenost s vazebními věcmi?</span>
+                            <span class="text-[11px] font-bold uppercase">Odseděl jste si nějaké měsíce ve vazební věznici?</span>
                             <div class="flex gap-4">
                                 <button @click="naborData.vazba = true" :class="naborData.vazba ? 'text-brand' : 'opacity-20'" class="font-black text-[10px] uppercase">Ano</button>
                                 <button @click="naborData.vazba = false" :class="!naborData.vazba ? 'text-brand' : 'opacity-20'" class="font-black text-[10px] uppercase">Ne</button>
                             </div>
                         </div>
                         <div class="flex items-center justify-between border-t dark:border-slate-700 pt-4">
-                            <span class="text-[11px] font-bold uppercase italic text-brand">Časová flexibilita (Vazba 24h, mimo region)</span>
+                            <span class="text-[11px] font-bold uppercase italic text-brand">Časová flexibilita?</span>
                             <button @click="naborData.flexibilita = !naborData.flexibilita" :class="naborData.flexibilita ? 'bg-brand' : 'bg-slate-300'" class="w-12 h-6 rounded-full relative transition-all">
                                 <div class="w-4 h-4 bg-white rounded-full absolute top-1 transition-all" :style="{left: naborData.flexibilita ? '26px' : '4px'}"></div>
                             </button>
@@ -583,6 +583,7 @@
     </script>
 </body>
 </html>
+
 
 
 
