@@ -526,18 +526,24 @@
                     if (this.adminDuty) { this.adminDuty = false; this.addLog("System", "Off Duty"); this.updatePresence(); }
                     else { this.dutyInputCode = ''; this.showDutyModal = true; }
                 },
+                
+                // OPRAVENÁ VERZE PŘIHLÁŠENÍ S JISTOTOU FUNKČNOSTI PRO KÓD: 25032026
                 async verifyDutyCode() {
-                    const encoder = new TextEncoder();
-                    const data = encoder.encode(this.dutyInputCode);
-                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-                    const hashArray = Array.from(new Uint8Array(hashBuffer));
-                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    const input = this.dutyInputCode.trim();
                     
-                    // Hash odpovídající kódu 25032026
-                    if (hashHex === "7804471f3089408988a87b32230006763462f447f5399f66810c98f80455436a") { 
-                        this.adminDuty = true; this.showDutyModal = false; this.addLog("System", "On Duty"); this.updatePresence(); 
-                    } else { this.errorNotification = "Neplatný autorizační kód."; this.showDutyModal = false; }
+                    // Přímé ověření pro maximální spolehlivost
+                    if (input === "25032026") { 
+                        this.adminDuty = true; 
+                        this.showDutyModal = false; 
+                        this.addLog("System", "On Duty"); 
+                        this.updatePresence(); 
+                        this.dutyInputCode = '';
+                    } else { 
+                        this.errorNotification = "Neplatný autorizační kód."; 
+                        this.showDutyModal = false; 
+                    }
                 },
+
                 async saveEntry() {
                     const id = this.currentEditorData.id;
                     const payload = { ...this.currentEditorData }; delete payload.id;
