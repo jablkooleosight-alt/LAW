@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>San Andreas Government - Law Portal v8.6 Professional</title>
+    <title>San Andreas Government - Law Portal v8.7 Professional</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
@@ -31,14 +31,12 @@
             border-radius: 2rem; border: 1px solid rgba(255, 255, 255, 0.05); z-index: 50; 
         }
 
-        /* Zelený Scrollbar */
         .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #4ade80; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
         
         .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 4rem; font-weight: 900; opacity: 0.02; pointer-events: none; text-transform: uppercase; white-space: nowrap; }
 
-        /* OPRAVA FORMÁTOVÁNÍ TEXTU */
         .preserve-format { white-space: pre-wrap; word-break: break-word; }
 
         @media (max-width: 1400px) { .sidebar-online { display: none; } .main-content-shift { margin-left: auto !important; margin-right: auto !important; } }
@@ -93,7 +91,7 @@
             <nav class="max-w-6xl mx-auto p-8 flex justify-between items-center main-content-shift" style="margin-left: 300px;">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 sprunk-gradient rounded-xl flex items-center justify-center text-white font-black text-xs">SA</div>
-                    <h1 class="text-xl font-black uppercase italic tracking-tighter">Law Portal <span class="text-[10px] opacity-30 not-italic ml-2">v8.6</span></h1>
+                    <h1 class="text-xl font-black uppercase italic tracking-tighter">Law Portal <span class="text-[10px] opacity-30 not-italic ml-2">v8.7</span></h1>
                 </div>
                 <div class="flex gap-4">
                     <button @click="logout" class="px-5 py-2 rounded-xl border border-red-500/20 text-red-500 text-[9px] font-black uppercase hover:bg-red-600 hover:text-white transition-all">Odhlásit</button>
@@ -103,10 +101,15 @@
             <main class="max-w-5xl mx-auto px-8 pb-32 main-content-shift" style="margin-left: 300px;">
                 <header class="py-10 text-center">
                     <h2 class="text-6xl font-black uppercase italic tracking-tighter mb-8 leading-none">Vládní <span class="text-brand">Archiv</span></h2>
-                    <div class="flex justify-center gap-2">
+                    
+                    <div class="flex flex-wrap justify-center items-center gap-2">
                         <button @click="view = 'laws'" :class="view === 'laws' ? 'sprunk-gradient text-white scale-105' : 'bg-slate-900 opacity-50'" class="px-6 py-2.5 rounded-xl font-black uppercase text-[9px] transition-all">📜 Legislativa</button>
                         <button @click="view = 'advokati'" :class="view === 'advokati' ? 'sprunk-gradient text-white scale-105' : 'bg-slate-900 opacity-50'" class="px-6 py-2.5 rounded-xl font-black uppercase text-[9px] transition-all">⚖️ Advokáti</button>
-                        <button v-if="adminDuty" @click="view = 'audit'" :class="view === 'audit' ? 'sprunk-gradient text-white scale-105' : 'bg-slate-900 opacity-50'" class="px-6 py-2.5 rounded-xl font-black uppercase text-[9px] transition-all">📊 Full Audit</button>
+                        
+                        <div v-if="adminDuty" class="flex gap-2 ml-4 pl-4 border-l border-white/10">
+                            <button @click="view = 'audit'" :class="view === 'audit' ? 'sprunk-gradient text-white scale-105' : 'bg-slate-900 opacity-50'" class="px-6 py-2.5 rounded-xl font-black uppercase text-[9px] transition-all">📊 Full Audit</button>
+                            <button @click="createNewEntry" class="px-6 py-2.5 bg-brand text-black rounded-xl font-black uppercase text-[9px] hover:scale-105 transition-all shadow-[0_0_20px_rgba(74,222,128,0.2)]">+ Nový Záznam</button>
+                        </div>
                     </div>
                 </header>
 
@@ -138,7 +141,6 @@
                             </div>
                         </div>
                     </div>
-                    <button v-if="adminDuty" @click="createNewEntry" class="w-full py-4 border-2 border-dashed border-brand/20 rounded-2xl text-brand font-black uppercase text-[10px] hover:bg-brand/5 transition-all">+ Přidat nový záznam do archivu</button>
                 </div>
 
                 <div v-if="view === 'advokati'" class="space-y-8 animate__animated animate__fadeIn">
@@ -199,8 +201,10 @@
                 <div class="space-y-4">
                     <div class="grid grid-cols-2 gap-4">
                         <input v-model="currentEditorData.title" placeholder="Název" class="w-full bg-white/5 p-3 rounded-xl outline-none focus:border-brand border border-transparent text-xs font-bold uppercase">
-                        <select v-model="currentEditorData.type" class="w-full bg-white/5 p-3 rounded-xl outline-none border border-transparent text-xs font-bold uppercase">
-                            <option>Zákon</option><option>Novela</option><option>Vyhláška</option>
+                        <select v-model="currentEditorData.type" class="w-full bg-white text-black p-3 rounded-xl outline-none border border-transparent text-xs font-black uppercase appearance-none cursor-pointer shadow-lg">
+                            <option value="Zákon">Zákon</option>
+                            <option value="Novela">Novela</option>
+                            <option value="Vyhláška">Vyhláška</option>
                         </select>
                     </div>
                     <input v-model="currentEditorData.subtitle" placeholder="Anotace" class="w-full bg-white/5 p-3 rounded-xl outline-none text-xs italic font-bold">
@@ -242,7 +246,6 @@
         const SUPABASE_URL = 'https://hwnixtvddkkbyehugpph.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3bml4dHZkZGtrYnllaHVncHBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNTI3MzUsImV4cCI6MjA4NzgyODczNX0.xVDxIe-kXPR6Fs626cnmdoK6U8m2USHuiyRPZp2VkeI';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1344422204565651586/p-fB35lR3-w0CclYq7FidKInIIdA_Z6H_62zVl46vC4f2yG2jXNq_fB35lR3-w0CclYq';
 
         createApp({
             data() {
