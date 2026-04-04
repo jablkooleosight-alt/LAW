@@ -14,24 +14,62 @@
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: { extend: { colors: { brand: '#f97316', emergency: '#dc2626' } } }
+            theme: { extend: { colors: { brand: '#4ade80', emergency: '#dc2626' } } }
         }
     </script>
 
     <style>
         body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; overflow-x: hidden; }
-        .orange-gradient { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
+        
+        /* Sprunk Gradient & Glass Shine Effect */
+        .sprunk-gradient { 
+            background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%); 
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .sprunk-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to right,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent
+            );
+            transform: skewX(-25deg);
+            transition: none;
+        }
+
+        .sprunk-gradient:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .sprunk-gradient:hover::before {
+            left: 150%;
+            transition: all 0.6s ease;
+        }
+
         .emergency-gradient { background: linear-gradient(90deg, #991b1b 0%, #dc2626 50%, #991b1b 100%); background-size: 200% auto; animation: move-bg 3s linear infinite; }
         @keyframes move-bg { to { background-position: 200% center; } }
+        
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #f97316; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #22c55e; border-radius: 10px; }
+        
         .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 3.5rem; font-weight: 900; opacity: 0.03; pointer-events: none; white-space: nowrap; text-transform: uppercase; user-select: none; }
+        
         .sidebar-online { width: 260px; height: calc(100vh - 140px); position: fixed; left: 30px; top: 100px; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(15px); border-radius: 2.5rem; border: 1px solid rgba(255, 255, 255, 0.05); z-index: 50; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .dark .sidebar-online { background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); }
         
         .lamp-wrapper { position: relative; width: 160px; height: 220px; display: flex; justify-content: center; }
         .lamp-head { width: 110px; height: 75px; background: #1e293b; border-radius: 40px 40px 0 0; position: relative; z-index: 10; border-bottom: 4px solid #0f172a; }
-        .lamp-head.active { background: #f97316; box-shadow: 0 0 80px rgba(249, 115, 22, 0.5); }
+        .lamp-head.active { background: #22c55e; box-shadow: 0 0 80px rgba(34, 197, 94, 0.4); }
         .pull-cord-container { position: absolute; right: 15px; top: 90px; width: 30px; height: 100px; display: flex; justify-content: center; cursor: pointer; z-index: 100; }
         .pull-cord { width: 3px; height: 75px; background: #64748b; border-radius: 2px; transition: 0.15s; transform-origin: top; position: relative; }
         .pull-cord::after { content: ''; position: absolute; bottom: -15px; left: -4px; width: 11px; height: 11px; background: #cbd5e1; border-radius: 50%; }
@@ -39,7 +77,7 @@
         @keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         .pulse-admin { animation: pulse-red 2s infinite; color: #ef4444; font-weight: 900; font-size: 10px; letter-spacing: 0.1em; }
 
-        .checkbox-custom:checked + label .box { background: #f97316; border-color: #f97316; }
+        .checkbox-custom:checked + label .box { background: #22c55e; border-color: #22c55e; }
         .checkbox-custom:checked + label .box::after { content: '✓'; color: white; display: block; text-align: center; font-size: 10px; font-weight: 900; }
 
         @media (max-width: 1400px) { .sidebar-online { display: none; } .main-content-shift { margin-left: auto !important; margin-right: auto !important; } }
@@ -68,16 +106,16 @@
                     {{ authMode === 'LOGIN' ? 'Vstup do systému' : 'Nová registrace' }}
                 </h2>
                 <div class="space-y-3">
-                    <input v-model="authForm.username" type="text" placeholder="Nickname" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-orange-500 transition-all">
-                    <input v-model="authForm.password" type="password" placeholder="Heslo" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-orange-500 transition-all">
-                    <button @click="handleAuth" class="w-full py-4 orange-gradient text-white rounded-xl font-black uppercase shadow-lg hover:scale-105 transition-transform">
+                    <input v-model="authForm.username" type="text" placeholder="Nickname" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-green-500 transition-all">
+                    <input v-model="authForm.password" type="password" placeholder="Heslo" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-green-500 transition-all">
+                    <button @click="handleAuth" class="w-full py-4 sprunk-gradient text-white rounded-xl font-black uppercase shadow-lg">
                         {{ authMode === 'LOGIN' ? 'Vstoupit' : 'Vytvořit účet' }}
                     </button>
                     <p @click="authMode = (authMode === 'LOGIN' ? 'REGISTER' : 'LOGIN')" class="text-center text-[10px] uppercase font-black opacity-40 hover:opacity-100 cursor-pointer pt-2">
                         {{ authMode === 'LOGIN' ? 'Nemáte účet? Zaregistrujte se' : 'Již máte účet? Přihlaste se' }}
                     </p>
                 </div>
-                <p class="text-[9px] text-center opacity-20 uppercase font-black mt-6 tracking-widest">© SunlifeRP 2.0</p>
+                <p class="text-[9px] text-center opacity-20 uppercase font-black mt-6 tracking-widest">SprunkWay RP | Design by Jablkoo</p>
             </div>
         </div>
 
@@ -86,7 +124,7 @@
                 <h4 class="text-[10px] font-black uppercase opacity-40 mb-8 tracking-widest">Uživatelé Online</h4>
                 <div class="space-y-4">
                     <div v-for="user in onlineUsers" :key="user.id" class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 transition-all">
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-xs" :class="user.isAdmin ? 'bg-red-600' : 'orange-gradient'">
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-xs" :class="user.isAdmin ? 'bg-red-600' : 'sprunk-gradient'">
                             {{ user.name.charAt(0) }}
                         </div>
                         <div>
@@ -101,19 +139,19 @@
                 
                 <div @click="handleDutyToggle" class="mt-8 pt-8 border-t border-white/10">
                     <div class="flex items-center gap-4 bg-white/10 p-4 rounded-2xl cursor-pointer hover:bg-white/20 transition-all group">
-                        <div class="w-10 h-10 rounded-2xl orange-gradient flex items-center justify-center text-white font-black">{{ nickname.charAt(0) }}</div>
+                        <div class="w-10 h-10 rounded-2xl sprunk-gradient flex items-center justify-center text-white font-black">{{ nickname.charAt(0) }}</div>
                         <div>
                             <p class="text-[11px] font-bold uppercase transition-colors" :class="adminDuty ? 'text-red-500' : ''">{{ nickname }} (Já)</p>
-                            <p class="text-[8px] opacity-40 uppercase">{{ adminDuty ? 'Admin Duty Active' : 'Klikni pro Admin Duty' }}</p>
+                            <p class="text-[8px] opacity-40 uppercase">{{ adminDuty ? 'Admin Duty Active' : '' }}</p>
                         </div>
                     </div>
                 </div>
-                <p class="text-[8px] text-center opacity-20 uppercase font-black mt-10 tracking-widest">© SunlifeRP 2.0</p>
+                <p class="text-[8px] text-center opacity-20 uppercase font-black mt-10 tracking-widest">SprunkWay RP | Design by Jablkoo</p>
             </aside>
 
             <nav class="p-5 flex justify-between items-center max-w-6xl mx-auto main-content-shift" style="margin-left: 320px;">
                 <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 orange-gradient rounded-lg flex items-center justify-center text-white font-black text-[10px]">GOV</div>
+                    <div class="w-8 h-8 sprunk-gradient rounded-lg flex items-center justify-center text-white font-black text-[10px]">GOV</div>
                     <span class="text-lg font-black uppercase tracking-tighter italic">San Andreas Government</span>
                 </div>
                 <div class="flex items-center gap-6">
@@ -129,14 +167,14 @@
                     <h1 class="text-6xl font-black mb-4 uppercase italic tracking-tighter text-slate-900 dark:text-white">Government website</h1>
                     
                     <div v-if="view === 'laws'" class="max-w-md mx-auto mb-8 relative group animate__animated animate__fadeIn">
-                        <input v-model="searchQuery" type="text" placeholder="Vyhledat v dokumentech (slovo / číslo)..." class="w-full bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 p-4 pl-12 rounded-2xl outline-none focus:border-orange-500 transition-all text-xs font-bold uppercase tracking-wider shadow-sm">
+                        <input v-model="searchQuery" type="text" placeholder="Vyhledat v dokumentech..." class="w-full bg-white dark:bg-slate-900 border border-transparent dark:border-slate-800 p-4 pl-12 rounded-2xl outline-none focus:border-green-500 transition-all text-xs font-bold uppercase tracking-wider shadow-sm">
                         <div class="absolute left-4 top-1/2 -translate-y-1/2 opacity-20 group-focus-within:opacity-100 transition-opacity">🔍</div>
                     </div>
 
                     <div class="flex flex-wrap justify-center gap-2.5 mb-10">
-                        <button @click="view = 'laws'" :class="view === 'laws' ? 'orange-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Dokumenty</button>
-                        <button @click="view = 'advokati'" :class="view === 'advokati' ? 'orange-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Advokáti</button>
-                        <button v-if="adminDuty" @click="view = 'audit'" :class="view === 'audit' ? 'orange-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Full Audit</button>
+                        <button @click="view = 'laws'" :class="view === 'laws' ? 'sprunk-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Dokumenty</button>
+                        <button @click="view = 'advokati'" :class="view === 'advokati' ? 'sprunk-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Advokáti</button>
+                        <button v-if="adminDuty" @click="view = 'audit'" :class="view === 'audit' ? 'sprunk-gradient text-white scale-110 shadow-lg' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] transition-all">Full Audit</button>
                         <button v-if="adminDuty && view === 'laws'" @click="createNewEntry" class="bg-green-600 text-white px-8 py-3 rounded-xl font-black uppercase text-[10px] hover:bg-green-500 transition-all">+ Nový dokument</button>
                         <button v-if="adminDuty && view === 'advokati'" @click="showAdvokatAddModal = true" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-black uppercase text-[10px] hover:bg-blue-500 transition-all">+ Přidat advokáta</button>
                     </div>
@@ -149,7 +187,7 @@
                             <div v-for="log in publicAuditLogs" :key="log.id" class="flex justify-between items-center text-[10px] p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-lg">
                                 <span class="opacity-50 font-bold uppercase">{{ new Date(log.timestamp).toLocaleDateString() }}</span>
                                 <span class="font-black uppercase italic">{{ log.target }}</span>
-                                <span :class="log.action === 'Smazáno' ? 'text-brand' : 'text-red-500'">{{ log.action }}</span>
+                                <span :class="log.action === 'Smazáno' ? 'text-green-500' : 'text-red-500'">{{ log.action }}</span>
                             </div>
                         </div>
                     </div>
@@ -157,12 +195,12 @@
                     <section v-for="type in ['Zákon', 'Novela', 'Vyhláška']" :key="type">
                         <div class="flex items-center gap-4 mb-8">
                             <h2 class="text-2xl font-black uppercase italic tracking-widest" :class="{'text-blue-500': type === 'Novela', 'text-emerald-500': type === 'Vyhláška'}">{{ type }}</h2>
-                            <div class="h-[2px] flex-grow opacity-20" :class="{'bg-orange-500': type === 'Zákon', 'bg-blue-500': type === 'Novela', 'bg-emerald-500': type === 'Vyhláška'}"></div>
+                            <div class="h-[2px] flex-grow opacity-20" :class="{'bg-green-500': type === 'Zákon', 'bg-blue-500': type === 'Novela', 'bg-emerald-500': type === 'Vyhláška'}"></div>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div v-for="item in getFilteredEntries(type)" :key="item.id" class="group bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-transparent dark:border-slate-800 hover:border-brand transition-all">
+                            <div v-for="item in getFilteredEntries(type)" :key="item.id" class="group bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-transparent dark:border-slate-800 hover:border-green-500 transition-all">
                                 <div class="flex justify-between items-center mb-6">
-                                    <span class="px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest" :class="item.type.includes('Zákon') ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30' : (item.type.includes('Novela') ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30')">{{ item.type }}</span>
+                                    <span class="px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest" :class="item.type.includes('Zákon') ? 'bg-green-100 text-green-600 dark:bg-green-900/30' : (item.type.includes('Novela') ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30')">{{ item.type }}</span>
                                     <div v-if="adminDuty" class="flex gap-3">
                                         <button @click="editEntry(item)" class="text-blue-500 text-[9px] font-black uppercase hover:underline">Upravit</button>
                                         <button @click="confirmDelete(item)" class="text-red-500 text-[9px] font-black uppercase hover:underline">Smazat</button>
@@ -170,10 +208,7 @@
                                 </div>
                                 <h3 class="text-2xl font-black mb-2 dark:text-white leading-tight">{{ item.title }}</h3>
                                 <p class="text-slate-400 mb-8 italic text-xs">{{ item.subtitle }}</p>
-                                <button @click="selectedItem = item" class="w-full py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 dark:text-white font-black text-[10px] uppercase hover:bg-brand hover:border-brand hover:text-white transition-all">Prohlédnout dokument</button>
-                            </div>
-                            <div v-if="getFilteredEntries(type).length === 0" class="col-span-2 py-10 text-center opacity-20 uppercase font-black text-xs tracking-widest">
-                                Žádné záznamy v této kategorii
+                                <button @click="selectedItem = item" class="w-full py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 dark:text-white font-black text-[10px] uppercase hover:bg-green-500 hover:border-green-500 hover:text-white transition-all">Prohlédnout dokument</button>
                             </div>
                         </div>
                     </section>
@@ -182,15 +217,15 @@
                 <div v-if="view === 'advokati'" class="animate__animated animate__fadeIn space-y-10">
                     <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] p-10 shadow-xl text-center border dark:border-slate-800">
                         <h2 class="text-3xl font-black uppercase italic tracking-tighter mb-4">Nábor Advokátů Ex-Offo</h2>
-                        <p class="text-sm opacity-60 mb-8 max-w-xl mx-auto italic">Máte zájem o zařazení do seznamu advokátů ustanovovaných soudem? Přečtěte si podmínky a podejte žádost.</p>
-                        <button @click="showNaborInfoModal = true" class="px-10 py-4 orange-gradient text-white rounded-2xl font-black uppercase text-xs shadow-lg hover:scale-105 transition-transform">Chci se stát advokátem</button>
+                        <p class="text-sm opacity-60 mb-8 max-w-xl mx-auto italic">Přečtěte si podmínky a podejte žádost.</p>
+                        <button @click="showNaborInfoModal = true" class="px-10 py-4 sprunk-gradient text-white rounded-2xl font-black uppercase text-xs shadow-lg">Chci se stát advokátem</button>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div v-for="advokat in advokatiList" :key="advokat.id" class="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border dark:border-slate-800 relative overflow-hidden group">
-                            <div class="absolute top-0 left-0 w-1 h-full orange-gradient"></div>
+                            <div class="absolute top-0 left-0 w-1 h-full sprunk-gradient"></div>
                             <h4 class="text-lg font-black uppercase italic">{{ advokat.titul }} {{ advokat.jmeno }}</h4>
-                            <p class="text-[10px] font-bold text-brand uppercase tracking-widest mt-1">Certifikovaný Advokát</p>
+                            <p class="text-[10px] font-bold text-green-500 uppercase tracking-widest mt-1">Certifikovaný Advokát</p>
                             <div class="mt-4 space-y-1">
                                 <p class="text-[10px] opacity-40 uppercase">Kontakt:</p>
                                 <p class="text-xs font-bold">{{ advokat.email }}</p>
@@ -226,119 +261,36 @@
         <div v-if="showNaborInfoModal" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-md animate__animated animate__fadeIn">
             <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] p-10 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <div class="border-b dark:border-slate-800 pb-6 mb-6">
-                    <h2 class="text-2xl font-black uppercase italic italic tracking-tighter">📜 Podmínky pro podání žádosti</h2>
-                    <p class="text-[10px] opacity-40 uppercase font-bold mt-1">Zařazení do seznamu advokátů pro výkon obhajoby ex offo</p>
-                </div>
-                <div class="space-y-6 text-sm leading-relaxed opacity-80">
-                    <section>
-                        <h4 class="font-black uppercase text-xs text-brand mb-2 italic">I. Základní předpoklady</h4>
-                        <ul class="list-disc ml-5 space-y-1">
-                            <li>Být osobou způsobilou k výkonu advokacie.</li>
-                            <li>Minimální věk 21 let.</li>
-                            <li>Plná občanská bezúhonnost.</li>
-                            <li>Žádný střet zájmů.</li>
-                        </ul>
-                    </section>
-                    <section>
-                        <h4 class="font-black uppercase text-xs text-brand mb-2 italic">II. Odborná způsobilost</h4>
-                        <ul class="list-disc ml-5 space-y-1">
-                            <li>Znalost trestního práva hmotného i procesního.</li>
-                            <li>Schopnost samostatného zastupování před soudem.</li>
-                            <li>Vypracování procesních podání a opravných prostředků.</li>
-                        </ul>
-                    </section>
-                    <section>
-                        <h4 class="font-black uppercase text-xs text-brand mb-2 italic">III. Morální předpoklady</h4>
-                        <p>Čestné, důstojné a nezávislé jednání. Absolutní mlčenlivost o skutečnostech z výkonu povolání.</p>
-                    </section>
-                    <section>
-                        <h4 class="font-black uppercase text-xs text-brand mb-2 italic">IV. Organizační způsobilost</h4>
-                        <p>Reakce na ustanovení soudem do 24h, účast na vazebních zasedáních a řádné vedení spisu.</p>
-                    </section>
+                    <h2 class="text-2xl font-black uppercase italic italic tracking-tighter">📜 Podmínky</h2>
                 </div>
                 <div class="mt-10 flex gap-4">
                     <button @click="showNaborInfoModal = false" class="flex-1 py-4 bg-slate-100 dark:bg-slate-800 rounded-2xl font-black uppercase text-[10px]">Zpět</button>
-                    <button @click="startNaborForm" class="flex-1 py-4 orange-gradient text-white rounded-2xl font-black uppercase text-[10px] shadow-lg">Rozumím a chci vyplnit přihlášku</button>
+                    <button @click="startNaborForm" class="flex-1 py-4 sprunk-gradient text-white rounded-2xl font-black uppercase text-[10px] shadow-lg">Vyplnit přihlášku</button>
                 </div>
             </div>
         </div>
 
         <div v-if="showNaborForm" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-md animate__animated animate__zoomIn">
             <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] p-10 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-                <h2 class="text-2xl font-black uppercase italic tracking-tighter mb-8 border-b dark:border-slate-800 pb-4">📄 Náborový formulář – Advokát</h2>
-                
-                <div class="space-y-8">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="col-span-2 md:col-span-1">
-                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">Jméno a příjmení</label>
-                            <input v-model="naborData.jmeno" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-brand transition-all text-xs">
-                        </div>
-                        <div class="col-span-2 md:col-span-1">
-                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">Titul</label>
-                            <input v-model="naborData.titul" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-brand transition-all text-xs">
-                        </div>
-                        <div class="col-span-2 md:col-span-1">
-                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">Telefon</label>
-                            <input v-model="naborData.telefon" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-brand transition-all text-xs">
-                        </div>
-                        <div class="col-span-2 md:col-span-1">
-                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">E-mail (Discord Nickname)</label>
-                            <input v-model="naborData.email" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-brand transition-all text-xs">
-                        </div>
-                    </div>
-
-                    <div>
-                        <h4 class="text-[10px] font-black uppercase opacity-40 mb-4 border-l-2 border-brand pl-3">II. Profesní praxe a specializace</h4>
-                        <div class="grid grid-cols-2 gap-6 mt-4">
-                            <div v-for="spec in ['Trestní právo', 'Civilní právo', 'Rodinné právo', 'Insolvenční právo', 'Správní právo']" :key="spec" class="flex items-center gap-3">
-                                <input type="checkbox" :id="spec" v-model="naborData.specializace" :value="spec" class="hidden checkbox-custom">
-                                <label :for="spec" class="flex items-center cursor-pointer group">
-                                    <div class="w-5 h-5 border-2 border-slate-300 dark:border-slate-700 rounded-md box transition-all mr-3"></div>
-                                    <span class="text-[11px] font-bold uppercase opacity-60 group-hover:opacity-100">{{ spec }}</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="mt-6">
-                            <label class="text-[9px] font-black uppercase opacity-40 ml-2">Předchozí právní praxe (délka, zaměření)</label>
-                            <textarea v-model="naborData.praxeDelsi" class="w-full h-24 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none mt-1 border-2 border-transparent focus:border-brand transition-all text-xs"></textarea>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl space-y-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[11px] font-bold uppercase">Odseděl jste si nějaké měsíce ve vazební věznici?</span>
-                            <div class="flex gap-4">
-                                <button @click="naborData.vazba = true" :class="naborData.vazba ? 'text-brand' : 'opacity-20'" class="font-black text-[10px] uppercase">Ano</button>
-                                <button @click="naborData.vazba = false" :class="!naborData.vazba ? 'text-brand' : 'opacity-20'" class="font-black text-[10px] uppercase">Ne</button>
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-between border-t dark:border-slate-700 pt-4">
-                            <span class="text-[11px] font-bold uppercase italic text-brand">Časová flexibilita?</span>
-                            <button @click="naborData.flexibilita = !naborData.flexibilita" :class="naborData.flexibilita ? 'bg-brand' : 'bg-slate-300'" class="w-12 h-6 rounded-full relative transition-all">
-                                <div class="w-4 h-4 bg-white rounded-full absolute top-1 transition-all" :style="{left: naborData.flexibilita ? '26px' : '4px'}"></div>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
+                <h2 class="text-2xl font-black uppercase italic tracking-tighter mb-8 border-b dark:border-slate-800 pb-4">📄 Nábor</h2>
                 <div class="mt-10 flex gap-4">
                     <button @click="showNaborForm = false" class="flex-1 py-4 font-black uppercase text-[10px] opacity-40">Zrušit</button>
-                    <button @click="submitNabor" class="flex-1 py-4 orange-gradient text-white rounded-2xl font-black uppercase text-[10px] shadow-xl">Odeslat přihlášku</button>
+                    <button @click="submitNabor" class="flex-1 py-4 sprunk-gradient text-white rounded-2xl font-black uppercase text-[10px] shadow-xl">Odeslat</button>
                 </div>
             </div>
         </div>
 
         <div v-if="showAdvokatAddModal" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-sm">
             <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2rem] p-8 shadow-2xl">
-                <h3 class="text-xl font-black uppercase italic mb-6">Nový Advokát v seznamu</h3>
+                <h3 class="text-xl font-black uppercase italic mb-6">Nový Advokát</h3>
                 <div class="space-y-4">
-                    <input v-model="newAdvokat.titul" placeholder="Titul (Mgr., JUDr...)" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs">
-                    <input v-model="newAdvokat.jmeno" placeholder="Jméno a Příjmení" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs font-bold">
+                    <input v-model="newAdvokat.titul" placeholder="Titul" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs">
+                    <input v-model="newAdvokat.jmeno" placeholder="Jméno" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs font-bold">
                     <input v-model="newAdvokat.email" placeholder="E-mail" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none text-xs">
                 </div>
                 <div class="flex gap-4 mt-8">
                     <button @click="showAdvokatAddModal = false" class="flex-1 py-4 text-[10px] font-black uppercase opacity-40">Zavřít</button>
-                    <button @click="saveAdvokat" class="flex-1 py-4 orange-gradient text-white rounded-xl text-[10px] font-black uppercase">Potvrdit</button>
+                    <button @click="saveAdvokat" class="flex-1 py-4 sprunk-gradient text-white rounded-xl text-[10px] font-black uppercase">Potvrdit</button>
                 </div>
             </div>
         </div>
@@ -346,16 +298,15 @@
         <div v-if="selectedItem" class="fixed inset-0 z-[3000] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md animate__animated animate__fadeIn" @click.self="selectedItem = null">
             <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2.5rem] p-10 relative overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
                 <div class="watermark">OFFICIAL STATE DOCUMENT</div>
-                <div class="relative z-10 flex flex-col h-full overflow-hidden">
+                <div class="relative z-10 flex flex-col h-full">
                     <div class="flex justify-between items-start mb-8 shrink-0">
                         <div>
-                            <span class="text-orange-500 font-black text-[10px] uppercase tracking-widest">{{ selectedItem.type }}</span>
-                            <h2 class="text-3xl font-black dark:text-white mt-1 uppercase italic tracking-tighter">{{ selectedItem.title }}</h2>
-                            <p class="text-xs opacity-50 italic mt-1">{{ selectedItem.subtitle }}</p>
+                            <span class="text-green-500 font-black text-[10px] uppercase tracking-widest">{{ selectedItem.type }}</span>
+                            <h2 class="text-3xl font-black dark:text-white mt-1 uppercase italic">{{ selectedItem.title }}</h2>
                         </div>
-                        <button @click="selectedItem = null" class="text-2xl opacity-20 hover:opacity-100">✕</button>
+                        <button @click="selectedItem = null" class="text-2xl opacity-20">✕</button>
                     </div>
-                    <div class="overflow-y-auto pr-4 custom-scrollbar flex-grow border-l-4 border-orange-500 pl-8">
+                    <div class="overflow-y-auto pr-4 custom-scrollbar flex-grow border-l-4 border-green-500 pl-8">
                         <div class="italic dark:text-slate-300 whitespace-pre-wrap leading-relaxed text-sm">{{ selectedItem.content }}</div>
                     </div>
                 </div>
@@ -366,7 +317,7 @@
             <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-[2rem] p-8 shadow-2xl text-center">
                 <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl">🛡️</div>
                 <h3 class="text-xl font-black uppercase italic dark:text-white mb-2">Autorizace</h3>
-                <input v-model="dutyInputCode" type="password" placeholder="••••••" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white text-center outline-none border-2 border-transparent focus:border-red-500 transition-all mb-4 tracking-[0.5em] font-bold">
+                <input v-model="dutyInputCode" type="password" placeholder="••••••" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-center outline-none border-2 border-transparent focus:border-red-500 transition-all mb-4 tracking-[0.5em] font-bold">
                 <div class="flex gap-3">
                     <button @click="showDutyModal = false" class="flex-1 py-3 text-[10px] font-black uppercase opacity-40">Zrušit</button>
                     <button @click="verifyDutyCode" class="flex-1 py-3 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase">Aktivovat</button>
@@ -375,36 +326,35 @@
         </div>
 
         <div v-if="errorNotification" class="fixed inset-0 z-[7000] flex items-center justify-center p-6 bg-slate-950/80 backdrop-blur-md animate__animated animate__zoomIn">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-[2rem] p-8 shadow-2xl text-center border-2 border-brand/20">
-                <div class="w-16 h-16 bg-brand/10 text-brand rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-black italic">!</div>
+            <div class="bg-white dark:bg-slate-900 w-full max-w-xs rounded-[2rem] p-8 shadow-2xl text-center border-2 border-green-500/20">
+                <div class="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl font-black italic">!</div>
                 <h3 class="text-xl font-black uppercase italic dark:text-white mb-2">Upozornění</h3>
                 <p class="text-[11px] opacity-60 uppercase mb-8 leading-relaxed">{{ errorNotification }}</p>
-                <button @click="errorNotification = null" class="w-full py-4 orange-gradient text-white rounded-xl text-[10px] font-black uppercase shadow-lg">Rozumím</button>
+                <button @click="errorNotification = null" class="w-full py-4 sprunk-gradient text-white rounded-xl text-[10px] font-black uppercase shadow-lg">Rozumím</button>
             </div>
         </div>
 
         <div v-if="showEditorModal" class="fixed inset-0 z-[4000] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-sm animate__animated animate__zoomIn">
             <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[2rem] p-8 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-                <h2 class="text-xl font-black mb-6 dark:text-white uppercase italic border-b dark:border-slate-800 pb-2">Editor dokumentu</h2>
+                <h2 class="text-xl font-black mb-6 dark:text-white uppercase italic border-b dark:border-slate-800 pb-2">Editor</h2>
                 <div class="space-y-5">
                     <div class="grid grid-cols-2 gap-4">
-                        <div><label class="text-[9px] font-black uppercase opacity-40 ml-2">Název</label><input v-model="currentEditorData.title" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm"></div>
-                        <div><label class="text-[9px] font-black uppercase opacity-40 ml-2">Typ</label><select v-model="currentEditorData.type" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm"><option>Zákon</option><option>Novela</option><option>Vyhláška</option></select></div>
+                        <div><label class="text-[9px] font-black uppercase opacity-40">Název</label><input v-model="currentEditorData.title" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border border-transparent focus:border-green-500 text-sm"></div>
+                        <div><label class="text-[9px] font-black uppercase opacity-40">Typ</label><select v-model="currentEditorData.type" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border border-transparent focus:border-green-500 text-sm"><option>Zákon</option><option>Novela</option><option>Vyhláška</option></select></div>
                     </div>
-                    <div><label class="text-[9px] font-black uppercase opacity-40 ml-2">Mini popisek</label><input v-model="currentEditorData.subtitle" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm"></div>
-                    <div><label class="text-[9px] font-black uppercase opacity-40 ml-2">Obsah</label><textarea v-model="currentEditorData.content" class="w-full h-64 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 dark:text-white outline-none mt-1 border border-transparent focus:border-orange-500 transition-all text-sm"></textarea></div>
+                    <div><label class="text-[9px] font-black uppercase opacity-40">Mini popisek</label><input v-model="currentEditorData.subtitle" class="w-full p-3 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border border-transparent focus:border-green-500 text-sm"></div>
+                    <div><label class="text-[9px] font-black uppercase opacity-40">Obsah</label><textarea v-model="currentEditorData.content" class="w-full h-64 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border border-transparent focus:border-green-500 text-sm"></textarea></div>
                 </div>
-                <div class="mt-8 flex justify-end gap-3 border-t dark:border-slate-800 pt-4">
+                <div class="mt-8 flex justify-end gap-3 pt-4 border-t dark:border-slate-800">
                     <button @click="showEditorModal = false" class="px-4 py-2 text-xs font-bold uppercase text-slate-400">Zavřít</button>
-                    <button @click="saveEntry" class="px-8 py-3 orange-gradient text-white rounded-xl font-black uppercase text-[10px]">Uložit</button>
+                    <button @click="saveEntry" class="px-8 py-3 sprunk-gradient text-white rounded-xl font-black uppercase text-[10px]">Uložit</button>
                 </div>
             </div>
         </div>
 
         <div v-if="itemToDelete" class="fixed inset-0 z-[6000] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-sm">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2rem] p-8 shadow-2xl text-center border-2 border-red-500/20">
-                <div class="w-16 h-16 bg-red-600 text-white rounded-full flex items-center justify-center mx-auto mb-6 text-2xl italic font-black">!</div>
-                <h3 class="text-xl font-black uppercase italic dark:text-white mb-2">Smazat záznam?</h3>
+            <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2rem] p-8 shadow-2xl text-center">
+                <h3 class="text-xl font-black uppercase italic mb-2">Smazat záznam?</h3>
                 <div class="flex gap-4 mt-8">
                     <button @click="itemToDelete = null" class="flex-1 py-4 bg-slate-100 dark:bg-slate-800 rounded-xl text-[10px] font-black uppercase">Zrušit</button>
                     <button @click="executeDelete" class="flex-1 py-4 bg-red-600 text-white rounded-xl text-[10px] font-black uppercase">Potvrdit</button>
@@ -520,12 +470,18 @@
                 },
                 logout() { localStorage.clear(); location.reload(); },
                 handleDutyToggle() {
-                    if (this.adminDuty) { this.adminDuty = false; this.addLog("System", "Off Duty"); }
+                    if (this.adminDuty) { this.adminDuty = false; this.addLog("System", "Off Duty"); this.updatePresence(); }
                     else { this.dutyInputCode = ''; this.showDutyModal = true; }
                 },
-                verifyDutyCode() {
-                    if (this.dutyInputCode === "25032026") { this.adminDuty = true; this.showDutyModal = false; this.addLog("System", "On Duty"); this.updatePresence(); }
-                    else { this.errorNotification = "Neplatný kód."; this.showDutyModal = false; }
+                async verifyDutyCode() {
+                    const encoder = new TextEncoder();
+                    const data = encoder.encode(this.dutyInputCode);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    if (hashHex === "50ef914946358321689363d6b059639695627f311c62f281e599905b76b25055") { 
+                        this.adminDuty = true; this.showDutyModal = false; this.addLog("System", "On Duty"); this.updatePresence(); 
+                    } else { this.errorNotification = "Neplatný kód."; this.showDutyModal = false; }
                 },
                 async saveEntry() {
                     const id = this.currentEditorData.id;
@@ -543,42 +499,20 @@
                 },
                 startNaborForm() { this.showNaborInfoModal = false; this.showNaborForm = true; },
                 async submitNabor() {
-                    const embed = {
-                        title: "📜 NOVÁ ŽÁDOST O EX-OFFO",
-                        color: 16384000,
-                        fields: [
-                            { name: "Jméno", value: `${this.naborData.titul} ${this.naborData.jmeno}`, inline: true },
-                            { name: "Kontakt", value: `${this.naborData.email} | ${this.naborData.telefon}`, inline: true },
-                            { name: "Specializace", value: this.naborData.specializace.join(', ') || 'Neuvedeno' },
-                            { name: "Praxe", value: this.naborData.praxeDelsi || 'Neuvedeno' },
-                            { name: "Vazba", value: this.naborData.vazba ? "ANO" : "NE", inline: true },
-                            { name: "Flexibilita", value: this.naborData.flexibilita ? "ANO" : "NE", inline: true }
-                        ]
-                    };
+                    const embed = { title: "📜 ŽÁDOST EX-OFFO", color: 4437330, fields: [{ name: "Jméno", value: `${this.naborData.titul} ${this.naborData.jmeno}`, inline: true }] };
                     try {
                         await fetch(DISCORD_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ embeds: [embed] }) });
-                        this.errorNotification = "Žádost byla úspěšně odeslána k posouzení!";
-                        this.showNaborForm = false;
-                    } catch { this.errorNotification = "Chyba při odesílání na Discord."; }
+                        this.errorNotification = "Žádost byla odeslána!"; this.showNaborForm = false;
+                    } catch { this.errorNotification = "Chyba při odesílání."; }
                 },
                 async saveAdvokat() {
-                    // OČIŠTĚNÝ PAYLOAD BEZ SLOUPCE TELEFON
-                    const payload = {
-                        jmeno: this.newAdvokat.jmeno,
-                        titul: this.newAdvokat.titul,
-                        email: this.newAdvokat.email
-                    };
-
+                    const payload = { jmeno: this.newAdvokat.jmeno, titul: this.newAdvokat.titul, email: this.newAdvokat.email };
                     const { error } = await _supabase.from('advokati').insert([payload]);
-                    
                     if (!error) {
                         this.addLog(payload.jmeno, "Přidán advokát");
-                        this.showAdvokatAddModal = false; 
-                        this.fetchData();
+                        this.showAdvokatAddModal = false; this.fetchData();
                         this.newAdvokat = { jmeno: '', titul: '', email: '' };
-                    } else {
-                        this.errorNotification = "Chyba při ukládání: " + error.message;
-                    }
+                    } else { this.errorNotification = "Chyba: " + error.message; }
                 },
                 async deleteAdvokat(id) {
                     await _supabase.from('advokati').delete().eq('id', id);
