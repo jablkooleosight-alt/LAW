@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>San Andreas Government - Law Portal v8.7 Professional</title>
+    <title>San Andreas Government - Law Portal v8.8 Professional</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
@@ -54,7 +54,7 @@
             <div v-else class="w-full max-w-[380px] bg-black/60 border border-brand/20 p-10 rounded-[2.5rem] shadow-2xl animate__animated animate__zoomIn">
                 <h2 class="text-xs font-black uppercase tracking-[0.3em] mb-8 border-b border-brand/10 pb-4 italic">Encrypted Entry</h2>
                 <div class="space-y-5">
-                    <input v-model="authForm.username" type="text" placeholder="IDENTIFICATION" class="w-full bg-white/5 border-b border-brand/20 p-3 outline-none focus:border-brand text-brand font-bold uppercase text-xs transition-all">
+                    <input v-model="authForm.username" type="text" placeholder="IDENTIFICATION" class="w-full bg-white/5 border-b border-brand/20 p-3 outline-none focus:border-brand text-brand font-bold text-xs transition-all">
                     <input v-model="authForm.password" type="password" placeholder="ACCESS KEY" class="w-full bg-white/5 border-b border-brand/20 p-3 outline-none focus:border-brand text-brand font-bold text-xs transition-all">
                     <button @click="handleAuth" :disabled="loading" class="w-full py-4 sprunk-gradient text-black font-black uppercase text-[10px] rounded-xl hover:scale-[1.02] active:scale-95 transition-all">
                         {{ loading ? 'Ověřování...' : (authMode === 'LOGIN' ? 'Autorizovat' : 'Registrovat') }}
@@ -91,7 +91,7 @@
             <nav class="max-w-6xl mx-auto p-8 flex justify-between items-center main-content-shift" style="margin-left: 300px;">
                 <div class="flex items-center gap-4">
                     <div class="w-10 h-10 sprunk-gradient rounded-xl flex items-center justify-center text-white font-black text-xs">SA</div>
-                    <h1 class="text-xl font-black uppercase italic tracking-tighter">Law Portal <span class="text-[10px] opacity-30 not-italic ml-2">v8.7</span></h1>
+                    <h1 class="text-xl font-black uppercase italic tracking-tighter">Law Portal <span class="text-[10px] opacity-30 not-italic ml-2">v8.8</span></h1>
                 </div>
                 <div class="flex gap-4">
                     <button @click="logout" class="px-5 py-2 rounded-xl border border-red-500/20 text-red-500 text-[9px] font-black uppercase hover:bg-red-600 hover:text-white transition-all">Odhlásit</button>
@@ -195,6 +195,38 @@
             </div>
         </div>
 
+        <div v-if="showNaborModal" class="fixed inset-0 z-[8000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl" @click.self="showNaborModal = false">
+            <div class="bg-slate-900 w-full max-w-2xl rounded-[3rem] p-12 relative shadow-2xl border border-white/10 max-h-[90vh] overflow-y-auto custom-scrollbar">
+                <div v-if="!naborStepForm">
+                    <h2 class="text-4xl font-black uppercase italic tracking-tighter mb-6 text-brand">Nábor Advokátů</h2>
+                    <div class="space-y-6 text-xs leading-relaxed opacity-80 mb-10">
+                        <p class="font-bold text-white uppercase">Požadavky pro přijetí:</p>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li>Čistý trestní rejstřík (doložitelný na místě).</li>
+                            <li>Znalost ústavy a trestního zákoníku státu San Andreas.</li>
+                            <li>Věk minimálně 21 let a platné doklady.</li>
+                            <li>Vysoká úroveň rétoriky a profesionální vystupování.</li>
+                        </ul>
+                        <p class="font-bold text-white uppercase mt-6">Průběh výběrového řízení:</p>
+                        <p>Po odeslání přihlášky bude váš profil posouzen ministerstvem spravedlnosti. V případě schválení budete pozváni k ústnímu pohovoru a přezkoušení z právních norem.</p>
+                    </div>
+                    <button @click="naborStepForm = true" class="w-full py-4 sprunk-gradient text-black font-black uppercase text-[10px] rounded-xl transition-all">Pokračovat k přihlášce</button>
+                </div>
+
+                <div v-else class="space-y-4">
+                    <h2 class="text-2xl font-black uppercase italic mb-6">Vstupní Formulář</h2>
+                    <input v-model="naborData.jmeno" placeholder="Celé Jméno (IC)" class="w-full bg-white/5 p-4 rounded-xl outline-none border border-white/10 text-xs font-bold">
+                    <input v-model="naborData.vek" placeholder="Věk" class="w-full bg-white/5 p-4 rounded-xl outline-none border border-white/10 text-xs font-bold">
+                    <textarea v-model="naborData.zkusenosti" placeholder="Předchozí právní praxe..." class="w-full h-32 bg-white/5 p-4 rounded-xl outline-none border border-white/10 text-xs font-bold"></textarea>
+                    <textarea v-model="naborData.motivace" placeholder="Proč chcete být advokátem?" class="w-full h-32 bg-white/5 p-4 rounded-xl outline-none border border-white/10 text-xs font-bold"></textarea>
+                    <div class="flex gap-4">
+                        <button @click="naborStepForm = false" class="flex-1 py-4 bg-white/5 rounded-xl font-black uppercase text-[10px]">Zpět</button>
+                        <button @click="submitNabor" class="flex-[2] py-4 sprunk-gradient text-black font-black uppercase text-[10px] rounded-xl">Odeslat přihlášku</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div v-if="showEditorModal" class="fixed inset-0 z-[8000] flex items-center justify-center p-4 bg-black/95" @click.self="showEditorModal = false">
             <div class="bg-slate-900 w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl border-t-4 border-brand">
                 <h3 class="text-xl font-black uppercase italic mb-6">Editor Legislativy</h3>
@@ -246,6 +278,7 @@
         const SUPABASE_URL = 'https://hwnixtvddkkbyehugpph.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh3bml4dHZkZGtrYnllaHVncHBoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyNTI3MzUsImV4cCI6MjA4NzgyODczNX0.xVDxIe-kXPR6Fs626cnmdoK6U8m2USHuiyRPZp2VkeI';
         const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1344422204565651586/p-fB35lR3-w0CclYq7FidKInIIdA_Z6H_62zVl46vC4f2yG2jXNq_fB35lR3-w0CclYq';
 
         createApp({
             data() {
@@ -266,10 +299,12 @@
                     showEditorModal: false,
                     showDutyModal: false,
                     showNaborModal: false,
+                    naborStepForm: false,
                     showAdvokatAddModal: false,
                     dutyInputCode: '',
                     currentEditorData: { id: null, title: '', subtitle: '', type: 'Zákon', content: '' },
                     newAdvokat: { jmeno: '', titul: '', email: '' },
+                    naborData: { jmeno: '', vek: '', zkusenosti: '', motivace: '' },
                     presenceChannel: null
                 }
             },
@@ -311,13 +346,16 @@
                     try {
                         if (this.authMode === 'LOGIN') {
                             const { data } = await _supabase.from('profiles').select('*').eq('nickname', this.authForm.username).single();
-                            if (data && data.password === this.authForm.password) {
+                            // CASE SENSITIVE CHECK
+                            if (data && data.nickname === this.authForm.username && data.password === this.authForm.password) {
                                 this.isLoggedIn = true;
                                 this.nickname = data.nickname;
                                 localStorage.setItem('sa_logged_in', 'true');
                                 localStorage.setItem('sa_nick', data.nickname);
                                 this.addLog("Systém", "Login do portálu");
                                 this.initSystem();
+                            } else {
+                                alert("Nesprávné přihlašovací údaje (Rozlišují se velká/malá písmena)");
                             }
                         } else {
                             await _supabase.from('profiles').insert([{ nickname: this.authForm.username, password: this.authForm.password }]);
@@ -325,54 +363,46 @@
                         }
                     } finally { this.loading = false; }
                 },
+                async submitNabor() {
+                    const msg = `⚖️ **NOVÁ PŘIHLÁŠKA K ADVOKACII**\n**Jméno:** ${this.naborData.jmeno}\n**Věk:** ${this.naborData.vek}\n**Praxe:** ${this.naborData.zkusenosti}\n**Motivace:** ${this.naborData.motivace}`;
+                    await fetch(DISCORD_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: msg }) });
+                    alert("Přihláška byla odeslána k posouzení.");
+                    this.showNaborModal = false;
+                    this.naborStepForm = false;
+                    this.naborData = { jmeno: '', vek: '', zkusenosti: '', motivace: '' };
+                },
                 logout() { localStorage.clear(); location.reload(); },
                 handleDutyToggle() {
-                    if (this.adminDuty) { 
-                        this.adminDuty = false; 
-                        this.addLog("Systém", "Deaktivace Admin Duty");
-                        this.updatePresence(); 
-                    }
+                    if (this.adminDuty) { this.adminDuty = false; this.addLog("Systém", "Deaktivace Admin Duty"); this.updatePresence(); }
                     else { this.dutyInputCode = ''; this.showDutyModal = true; }
                 },
                 verifyDutyCode() {
                     if (this.dutyInputCode === "25032026") {
-                        this.adminDuty = true;
-                        this.showDutyModal = false;
-                        this.addLog("Systém", "Aktivace Admin Duty");
-                        this.updatePresence();
+                        this.adminDuty = true; this.showDutyModal = false;
+                        this.addLog("Systém", "Aktivace Admin Duty"); this.updatePresence();
                     }
                 },
                 async saveEntry() {
                     const id = this.currentEditorData.id;
                     const payload = { ...this.currentEditorData }; delete payload.id;
-                    if (id) { 
-                        await _supabase.from('entries').update(payload).eq('id', id);
-                        this.addLog(payload.title, "Úprava dokumentu");
-                    } else { 
-                        await _supabase.from('entries').insert([payload]);
-                        this.addLog(payload.title, "Vytvoření dokumentu");
-                    }
-                    this.showEditorModal = false;
-                    this.initSystem();
+                    if (id) { await _supabase.from('entries').update(payload).eq('id', id); this.addLog(payload.title, "Úprava dokumentu"); }
+                    else { await _supabase.from('entries').insert([payload]); this.addLog(payload.title, "Vytvoření dokumentu"); }
+                    this.showEditorModal = false; this.initSystem();
                 },
                 async confirmDelete(item) {
                     if(confirm("Odstranit z archivu?")) {
                         await _supabase.from('entries').delete().eq('id', item.id);
-                        this.addLog(item.title, "Odstranění z archivu");
-                        this.initSystem();
+                        this.addLog(item.title, "Odstranění z archivu"); this.initSystem();
                     }
                 },
                 async saveAdvokat() {
                     await _supabase.from('advokati').insert([this.newAdvokat]);
                     this.addLog(this.newAdvokat.jmeno, "Nový advokát");
-                    this.showAdvokatAddModal = false;
-                    this.newAdvokat = { jmeno: '', titul: '', email: '' };
-                    this.initSystem();
+                    this.showAdvokatAddModal = false; this.newAdvokat = { jmeno: '', titul: '', email: '' }; this.initSystem();
                 },
                 async deleteAdvokat(id) {
                     await _supabase.from('advokati').delete().eq('id', id);
-                    this.addLog("Seznam", "Smazání advokáta");
-                    this.initSystem();
+                    this.addLog("Seznam", "Smazání advokáta"); this.initSystem();
                 },
                 async addLog(target, action) {
                     await _supabase.from('audit_logs').insert([{ username: this.nickname, target: target, action: action }]);
