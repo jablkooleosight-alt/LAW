@@ -80,7 +80,7 @@
         .checkbox-custom:checked + label .box { background: #22c55e; border-color: #22c55e; }
         .checkbox-custom:checked + label .box::after { content: '✓'; color: white; display: block; text-align: center; font-size: 10px; font-weight: 900; }
 
-        /* Scrollování v modálu */
+        /* Fix pro scrollování v modálu */
         .modal-content-scroll { max-height: 60vh; overflow-y: auto; padding-right: 15px; }
 
         @media (max-width: 1400px) { .sidebar-online { display: none; } .main-content-shift { margin-left: auto !important; margin-right: auto !important; } }
@@ -264,35 +264,36 @@
         <div v-if="showNaborInfoModal" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-md animate__animated animate__fadeIn">
             <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] p-10 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
                 <div class="border-b dark:border-slate-800 pb-6 mb-6">
-                    <h2 class="text-2xl font-black uppercase italic italic tracking-tighter">📜 Podmínky pro podání žádosti</h2>
+                    <h2 class="text-2xl font-black uppercase italic tracking-tighter">📜 Podmínky pro podání žádosti</h2>
                     <p class="text-[10px] opacity-40 uppercase font-bold mt-1">Zařazení do seznamu advokátů pro výkon obhajoby ex offo</p>
                 </div>
                 <div class="space-y-6 text-sm leading-relaxed opacity-80">
                     <section>
                         <h4 class="font-black uppercase text-xs text-brand mb-2 italic">I. Základní předpoklady</h4>
                         <ul class="list-disc ml-5 space-y-1">
-                            <li>Být osobou způsobilou k výkonu advokacie.</li>
-                            <li>Minimální věk 21 let.</li>
-                            <li>Plná občanská bezúhonnost.</li>
-                            <li>Žádný střet zájmů v rámci státní správy.</li>
+                            <li>Být osobou způsobilou k výkonu advokacie v rámci státu San Andreas.</li>
+                            <li>Minimální věk 21 let a plná svéprávnost.</li>
+                            <li>Plná občanská bezúhonnost (doložená čistým rejstříkem trestů).</li>
+                            <li>Žádný střet zájmů v rámci státní správy nebo policie.</li>
                         </ul>
                     </section>
                     <section>
                         <h4 class="font-black uppercase text-xs text-brand mb-2 italic">II. Odborná způsobilost</h4>
                         <ul class="list-disc ml-5 space-y-1">
-                            <li>Znalost trestního práva hmotného i procesního.</li>
-                            <li>Schopnost samostatného zastupování před soudem.</li>
-                            <li>Vypracování procesních podání a opravných prostředků.</li>
+                            <li>Prokázaná znalost trestního práva hmotného i procesního.</li>
+                            <li>Schopnost samostatného a profesionálního zastupování před soudem.</li>
+                            <li>Zkušenost s vypracováním procesních podání a opravných prostředků.</li>
                         </ul>
                     </section>
                     <section>
-                        <h4 class="font-black uppercase text-xs text-brand mb-2 italic">III. Povinnosti advokáta</h4>
+                        <h4 class="font-black uppercase text-xs text-brand mb-2 italic">III. Povinnosti advokáta ex offo</h4>
                         <ul class="list-disc ml-5 space-y-1">
-                            <li>Povinnost převzít přidělené případy.</li>
-                            <li>Dodržování profesní etiky a mlčenlivosti.</li>
-                            <li>Pravidelná součinnost s orgány činnými v trestním řízení.</li>
+                            <li>Povinnost převzít přidělené případy v souladu s pořadníkem.</li>
+                            <li>Přísné dodržování profesní etiky a mlčenlivosti o případech.</li>
+                            <li>Pravidelná součinnost s orgány činnými v trestním řízení (LSPD, BCSO, Soud).</li>
                         </ul>
                     </section>
+                    <p class="text-xs italic font-bold text-red-500">Poznámka: Podáním žádosti souhlasíte s prověřením vaší identity a historie ze strany Ministerstva spravedlnosti.</p>
                 </div>
                 <div class="mt-10 flex gap-4">
                     <button @click="showNaborInfoModal = false" class="flex-1 py-4 bg-slate-100 dark:bg-slate-800 rounded-2xl font-black uppercase text-[10px]">Zpět</button>
@@ -512,13 +513,13 @@
                         else this.errorNotification = "Chybné jméno nebo heslo.";
                     } else {
                         const { error } = await _supabase.from('profiles').insert([{ nickname: this.authForm.username, password: this.authForm.password }]);
-                        if (!error) { this.errorNotification = "Registrace OK! Nyní se přihlaste."; this.authMode = 'LOGIN'; }
+                        if (!error) { this.errorNotification = "Registrace byla úspěšná! Nyní se přihlaste."; this.authMode = 'LOGIN'; }
                     }
                 },
                 loginSuccess(user) {
                     this.isLoggedIn = true; this.nickname = user.nickname;
                     localStorage.setItem('sa_logged_in', 'true'); localStorage.setItem('sa_nick', user.nickname);
-                    this.addLog("Login", "Vstup"); this.fetchData(); this.initPresence();
+                    this.addLog("Login", "Vstup do systému"); this.fetchData(); this.initPresence();
                 },
                 logout() { localStorage.clear(); location.reload(); },
                 handleDutyToggle() {
@@ -531,44 +532,53 @@
                     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
                     const hashArray = Array.from(new Uint8Array(hashBuffer));
                     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                    if (hashHex === "50ef914946358321689363d6b059639695627f311c62f281e599905b76b25055") { 
+                    
+                    // Hash odpovídající kódu 25032026
+                    if (hashHex === "7804471f3089408988a87b32230006763462f447f5399f66810c98f80455436a") { 
                         this.adminDuty = true; this.showDutyModal = false; this.addLog("System", "On Duty"); this.updatePresence(); 
-                    } else { this.errorNotification = "Neplatný kód."; this.showDutyModal = false; }
+                    } else { this.errorNotification = "Neplatný autorizační kód."; this.showDutyModal = false; }
                 },
                 async saveEntry() {
                     const id = this.currentEditorData.id;
                     const payload = { ...this.currentEditorData }; delete payload.id;
                     if (id) await _supabase.from('entries').update(payload).eq('id', id);
                     else await _supabase.from('entries').insert([payload]);
-                    this.addLog(payload.title, id ? "Úprava" : "Vytvořeno");
+                    this.addLog(payload.title, id ? "Úprava dokumentu" : "Vytvoření nového dokumentu");
                     this.showEditorModal = false; this.fetchData();
                 },
                 confirmDelete(item) { this.itemToDelete = item; },
                 async executeDelete() {
                     await _supabase.from('entries').delete().eq('id', this.itemToDelete.id);
-                    this.addLog(this.itemToDelete.title, "Smazáno");
+                    this.addLog(this.itemToDelete.title, "Smazání dokumentu");
                     this.itemToDelete = null; this.fetchData();
                 },
                 startNaborForm() { this.showNaborInfoModal = false; this.showNaborForm = true; },
                 async submitNabor() {
-                    const embed = { title: "📜 ŽÁDOST EX-OFFO", color: 4437330, fields: [{ name: "Jméno", value: `${this.naborData.titul} ${this.naborData.jmeno}`, inline: true }, { name: "Kontakt", value: `${this.naborData.email} | ${this.naborData.telefon}` }] };
+                    const embed = { 
+                        title: "📜 NOVÁ ŽÁDOST O ADVOKÁTA EX-OFFO", 
+                        color: 4437330, 
+                        fields: [
+                            { name: "Jméno a Titul", value: `${this.naborData.titul} ${this.naborData.jmeno}`, inline: true },
+                            { name: "Kontakt", value: `${this.naborData.email} | ${this.naborData.telefon}`, inline: true }
+                        ] 
+                    };
                     try {
                         await fetch(DISCORD_WEBHOOK, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ embeds: [embed] }) });
-                        this.errorNotification = "Žádost byla odeslána!"; this.showNaborForm = false;
-                    } catch { this.errorNotification = "Chyba při odesílání."; }
+                        this.errorNotification = "Žádost byla úspěšně odeslána k posouzení!"; this.showNaborForm = false;
+                    } catch { this.errorNotification = "Chyba při odesílání přihlášky."; }
                 },
                 async saveAdvokat() {
                     const payload = { jmeno: this.newAdvokat.jmeno, titul: this.newAdvokat.titul, email: this.newAdvokat.email };
                     const { error } = await _supabase.from('advokati').insert([payload]);
                     if (!error) {
-                        this.addLog(payload.jmeno, "Přidán advokát");
+                        this.addLog(payload.jmeno, "Přidání nového advokáta");
                         this.showAdvokatAddModal = false; this.fetchData();
                         this.newAdvokat = { jmeno: '', titul: '', email: '' };
-                    } else { this.errorNotification = "Chyba: " + error.message; }
+                    } else { this.errorNotification = "Chyba při ukládání: " + error.message; }
                 },
                 async deleteAdvokat(id) {
                     await _supabase.from('advokati').delete().eq('id', id);
-                    this.addLog("Seznam advokátů", "Smazán záznam");
+                    this.addLog("Seznam advokátů", "Odstranění advokáta ze seznamu");
                     this.fetchData();
                 },
                 async addLog(target, action) {
