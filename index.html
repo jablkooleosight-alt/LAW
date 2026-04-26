@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>San Andreas Government - Law Portal v9.0</title>
+    <title>San Andreas Government - Law Portal v9.3</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
@@ -14,20 +14,17 @@
     <script>
         tailwind.config = {
             darkMode: 'class',
-            theme: { extend: { colors: { brand: '#06b6d4', emergency: '#dc2626' } } }
+            theme: { extend: { colors: { brand: '#06b6d4' } } }
         }
     </script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; overflow-x: hidden; }
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s; overflow-x: hidden; }
         .sprunk-gradient { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 10px; }
-        
-        /* SIDEBAR */
         .sidebar-online { width: 260px; height: calc(100vh - 140px); position: fixed; left: 30px; top: 100px; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(15px); border-radius: 2.5rem; border: 1px solid rgba(255, 255, 255, 0.05); z-index: 50; }
         
-        /* LAMPIČKA */
         .lamp-wrapper { position: relative; width: 160px; height: 220px; display: flex; justify-content: center; }
         .lamp-head { width: 110px; height: 80px; background: #1e293b; border-radius: 40px 40px 5px 5px; border-bottom: 6px solid #0f172a; position: relative; z-index: 10; transition: all 0.4s ease; }
         .lamp-head.active { background: #06b6d4; box-shadow: 0 20px 80px rgba(6, 182, 212, 0.4); }
@@ -50,13 +47,13 @@
             </div>
             
             <div v-if="lampSwitchedOn" class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl animate__animated animate__fadeInUp">
-                <h2 class="text-2xl font-black text-center mb-6 uppercase italic">{{ authMode === 'LOGIN' ? 'Vstup do systému' : 'Nová registrace' }}</h2>
+                <h2 class="text-2xl font-black text-center mb-6 uppercase italic">{{ authMode === 'LOGIN' ? 'Vstup' : 'Registrace' }}</h2>
                 <div class="space-y-3">
                     <input v-model="authForm.username" type="text" placeholder="Nickname" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
                     <input v-model="authForm.password" type="password" placeholder="Heslo" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
-                    <button @click="handleAuth" class="w-full py-4 sprunk-gradient text-white rounded-xl font-black uppercase shadow-lg">{{ authMode === 'LOGIN' ? 'Vstoupit' : 'Vytvořit účet' }}</button>
+                    <button @click="handleAuth" class="w-full py-4 sprunk-gradient text-white rounded-xl font-black uppercase shadow-lg">{{ authMode === 'LOGIN' ? 'Vstoupit' : 'Vytvořit' }}</button>
                     <p @click="authMode = (authMode === 'LOGIN' ? 'REGISTER' : 'LOGIN')" class="text-center text-[10px] uppercase font-black opacity-40 hover:opacity-100 cursor-pointer pt-3">
-                        {{ authMode === 'LOGIN' ? 'Nemáte účet? Registrace' : 'Zpět na přihlášení' }}
+                        {{ authMode === 'LOGIN' ? 'Registrovat se' : 'Zpět na login' }}
                     </p>
                 </div>
             </div>
@@ -67,42 +64,43 @@
                 <h4 class="text-[10px] font-black uppercase opacity-40 mb-8 tracking-widest text-center">Justice Online</h4>
                 <div class="space-y-4">
                     <div v-for="user in onlineUsers" :key="user.id" class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5">
-                        <div class="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-xs" :class="user.isAdmin ? 'bg-red-600' : 'sprunk-gradient'">
+                        <div class="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-xs italic" :class="user.isAdmin ? 'bg-red-600' : 'sprunk-gradient'">
                             {{ user.name ? user.name.charAt(0).toUpperCase() : '?' }}
                         </div>
                         <div class="overflow-hidden">
                             <p class="text-[10px] font-bold uppercase truncate" :class="user.isAdmin ? 'text-red-500' : ''">{{ user.name }}</p>
-                            <p class="text-[7px] opacity-40 uppercase">{{ user.isAdmin ? 'Admin v akci' : 'Přihlášen' }}</p>
+                            <p class="text-[7px] opacity-40 uppercase font-black">{{ user.isAdmin ? 'Admin Active' : 'User' }}</p>
                         </div>
                     </div>
                 </div>
                 
                 <div @click="handleDutyToggle" class="mt-8 pt-8 border-t border-white/10 cursor-pointer">
                     <div class="flex items-center gap-4 bg-white/10 p-4 rounded-2xl hover:bg-white/20 transition-all">
-                        <div class="w-10 h-10 rounded-2xl sprunk-gradient flex items-center justify-center text-white font-black">{{ nickname.charAt(0).toUpperCase() }}</div>
+                        <div class="w-10 h-10 rounded-2xl sprunk-gradient flex items-center justify-center text-white font-black italic">{{ nickname.charAt(0).toUpperCase() }}</div>
                         <div>
                             <p class="text-[11px] font-bold uppercase" :class="adminDuty ? 'text-red-500' : ''">{{ nickname }}</p>
-                            <p class="text-[8px] opacity-40 uppercase">{{ adminDuty ? 'ADMIN DUTY ON' : 'Přejít do Duty' }}</p>
+                            <p class="text-[8px] opacity-40 uppercase">{{ adminDuty ? 'Duty ON' : 'Přejít do Duty' }}</p>
                         </div>
                     </div>
                 </div>
             </aside>
 
             <nav class="p-6 flex justify-between items-center max-w-6xl mx-auto main-content-shift" style="margin-left: 320px;">
-                <div class="flex items-center space-x-3 italic font-black uppercase tracking-tighter">
+                <div class="flex items-center space-x-3 italic font-black uppercase">
                     <div class="w-8 h-8 sprunk-gradient rounded-lg flex items-center justify-center text-white text-[10px]">GOV</div>
-                    <span>San Andreas Government</span>
+                    <span class="tracking-tighter">Law Portal v9.3</span>
                 </div>
-                <button @click="logout" class="text-[10px] font-black uppercase opacity-40 hover:opacity-100">Odhlásit</button>
+                <button @click="logout" class="text-[10px] font-black uppercase opacity-40 hover:opacity-100">Odpojit</button>
             </nav>
 
             <main class="max-w-5xl mx-auto px-6 pb-20 main-content-shift" style="margin-left: 300px;">
                 <header class="text-center py-10">
-                    <h1 class="text-6xl font-black mb-10 uppercase italic tracking-tighter">Justice Portal</h1>
+                    <h1 class="text-6xl font-black mb-10 uppercase italic tracking-tighter">Government Portal</h1>
                     <div class="flex justify-center gap-4">
-                        <button @click="view = 'laws'" :class="view === 'laws' ? 'sprunk-gradient text-white' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] shadow-lg">Legislativa</button>
-                        <button @click="view = 'advokati'" :class="view === 'advokati' ? 'sprunk-gradient text-white' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] shadow-lg">Advokáti</button>
-                        <button v-if="adminDuty" @click="view = 'audit'" :class="view === 'audit' ? 'bg-red-600 text-white' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] shadow-lg">Audit Log</button>
+                        <button @click="view = 'laws'" :class="view === 'laws' ? 'sprunk-gradient text-white' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px]">Dokumenty</button>
+                        <button @click="view = 'advokati'" :class="view === 'advokati' ? 'sprunk-gradient text-white' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px]">Advokáti</button>
+                        <button v-if="adminDuty" @click="openCreateModal" class="bg-red-600 text-white px-8 py-3 rounded-xl font-black uppercase text-[10px] shadow-lg">+ Nový Záznam</button>
+                        <button v-if="adminDuty" @click="view = 'audit'" :class="view === 'audit' ? 'bg-slate-800 text-white' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-8 py-3 rounded-xl font-black uppercase text-[10px]">Audit Log</button>
                     </div>
                 </header>
 
@@ -111,34 +109,21 @@
                         <h2 class="text-2xl font-black uppercase italic tracking-widest mb-6 text-cyan-500">{{ type }}y</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div v-for="item in entries.filter(e => e.type === type)" :key="item.id" class="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border dark:border-slate-800">
-                                <h3 class="text-2xl font-black mb-2">{{ item.title }}</h3>
-                                <p class="text-slate-400 mb-8 italic text-xs">{{ item.subtitle }}</p>
+                                <h3 class="text-2xl font-black mb-1 italic tracking-tight">{{ item.title }}</h3>
+                                <p class="text-slate-400 mb-8 italic text-[11px] font-bold uppercase opacity-60">{{ item.subtitle }}</p>
                                 <div class="flex gap-2">
-                                    <button @click="selectedItem = item" class="flex-grow py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-black text-[10px] uppercase hover:bg-cyan-500 hover:text-white transition-all">Zobrazit</button>
-                                    <button v-if="adminDuty" @click="deleteEntry(item)" class="px-6 py-4 rounded-2xl bg-red-600/10 text-red-500 font-black text-[10px] uppercase hover:bg-red-600 hover:text-white transition-all">Smazat</button>
+                                    <button @click="selectedItem = item" class="flex-grow py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-black text-[10px] uppercase hover:bg-cyan-500 hover:text-white transition-all">Otevřít</button>
+                                    <button v-if="adminDuty" @click="editEntry(item)" class="px-5 py-4 rounded-2xl border-2 dark:border-slate-800 hover:bg-cyan-500 hover:text-white transition-all">✎</button>
+                                    <button v-if="adminDuty" @click="deleteEntry(item)" class="px-5 py-4 rounded-2xl bg-red-600/10 text-red-500 hover:bg-red-600 hover:text-white transition-all">🗑</button>
                                 </div>
                             </div>
                         </div>
                     </section>
                 </div>
 
-                <div v-if="view === 'advokati'" class="animate__animated animate__fadeIn space-y-10">
-                    <div class="bg-white dark:bg-slate-900 rounded-[2.5rem] p-10 text-center border dark:border-slate-800">
-                        <h2 class="text-3xl font-black uppercase italic mb-4">Nábor Advokátů Ex-Offo</h2>
-                        <button @click="showNaborModal = true" class="px-8 py-3 sprunk-gradient text-white rounded-xl font-black uppercase text-[10px]">Chci se přihlásit</button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div v-for="adv in advokatiList" :key="adv.id" class="bg-white dark:bg-slate-900 p-6 rounded-[2rem] border dark:border-slate-800 relative">
-                            <div class="absolute top-0 left-0 w-1 h-full sprunk-gradient"></div>
-                            <h4 class="text-lg font-black uppercase italic">{{ adv.titul }} {{ adv.jmeno }}</h4>
-                            <p class="text-xs mt-4 opacity-60 font-bold tracking-tight">{{ adv.email }}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div v-if="view === 'audit'" class="animate__animated animate__fadeIn bg-white dark:bg-slate-900 rounded-[2.5rem] border dark:border-slate-800 overflow-hidden">
+                <div v-if="view === 'audit'" class="animate__animated animate__fadeIn bg-white dark:bg-slate-900 rounded-[2.5rem] border dark:border-slate-800 overflow-hidden shadow-2xl">
                     <table class="w-full text-left text-[11px]">
-                        <thead class="bg-slate-50 dark:bg-slate-800 font-black uppercase">
+                        <thead class="bg-slate-50 dark:bg-slate-800/50 font-black uppercase">
                             <tr>
                                 <th class="p-6">Uživatel</th>
                                 <th class="p-6">Akce</th>
@@ -147,63 +132,80 @@
                         </thead>
                         <tbody class="divide-y dark:divide-slate-800">
                             <tr v-for="log in auditLogs" :key="log.id">
-                                <td class="p-6 font-bold">{{ log.username }}</td>
-                                <td class="p-6 opacity-60">{{ log.action }}</td>
-                                <td class="p-6 opacity-40 italic">{{ new Date(log.created_at).toLocaleString() }}</td>
+                                <td class="p-6 font-black text-cyan-500">{{ log.username }}</td>
+                                <td class="p-6 italic opacity-80">{{ log.action }}</td>
+                                <td class="p-6 opacity-40 font-bold">{{ new Date(log.created_at).toLocaleString('cs-CZ') }}</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+
+                <div v-if="view === 'advokati'" class="animate__animated animate__fadeIn space-y-10 text-center">
+                    <div class="bg-white dark:bg-slate-900 rounded-[3rem] p-12 border dark:border-slate-800">
+                        <h2 class="text-4xl font-black uppercase italic mb-4">Nábor Advokátů</h2>
+                        <button @click="showNaborModal = true" class="px-12 py-5 sprunk-gradient text-white rounded-2xl font-black uppercase text-[11px]">Chci se přihlásit</button>
+                    </div>
+                </div>
             </main>
         </div>
 
+        <div v-if="showEditModal" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-xl">
+            <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[3rem] p-10 border dark:border-slate-800 shadow-2xl flex flex-col max-h-[90vh]">
+                <h2 class="text-3xl font-black uppercase italic mb-8">{{ editForm.id ? 'Upravit dokument' : 'Nový dokument' }}</h2>
+                <div class="space-y-4 overflow-y-auto pr-4 custom-scrollbar">
+                    <select v-model="editForm.type" class="w-full p-4 rounded-2xl bg-slate-100 dark:bg-slate-800 font-bold">
+                        <option>Zákon</option><option>Novela</option><option>Vyhláška</option>
+                    </select>
+                    <input v-model="editForm.title" type="text" placeholder="Název" class="w-full p-4 rounded-2xl bg-slate-100 dark:bg-slate-800 font-bold">
+                    <input v-model="editForm.subtitle" type="text" placeholder="Sbírka / ID" class="w-full p-4 rounded-2xl bg-slate-100 dark:bg-slate-800 font-bold">
+                    <textarea v-model="editForm.content" rows="8" placeholder="Obsah..." class="w-full p-4 rounded-2xl bg-slate-100 dark:bg-slate-800 text-sm"></textarea>
+                </div>
+                <div class="flex gap-4 mt-8">
+                    <button @click="showEditModal = false" class="flex-1 py-4 text-[10px] font-black uppercase opacity-40">Zavřít</button>
+                    <button @click="saveEntry" class="flex-1 py-4 sprunk-gradient text-white rounded-2xl font-black uppercase">Uložit</button>
+                </div>
+            </div>
+        </div>
+
         <div v-if="selectedItem" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-md">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-[3rem] shadow-2xl flex flex-col max-h-[85vh] border dark:border-slate-800 overflow-hidden">
-                <div class="p-8 flex justify-between items-center border-b dark:border-slate-800 shrink-0">
-                    <h2 class="text-2xl font-black uppercase italic">{{ selectedItem.title }}</h2>
-                    <button @click="selectedItem = null" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 font-bold">✕</button>
+            <div class="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-[3.5rem] shadow-2xl flex flex-col max-h-[85vh] border dark:border-slate-800 overflow-hidden">
+                <div class="p-10 border-b dark:border-slate-800 flex justify-between items-start">
+                    <div>
+                        <span class="text-cyan-500 font-black text-[10px] uppercase">{{ selectedItem.type }}</span>
+                        <h2 class="text-3xl font-black mt-1 uppercase italic">{{ selectedItem.title }}</h2>
+                    </div>
+                    <button @click="selectedItem = null" class="w-12 h-12 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xl font-bold">✕</button>
                 </div>
-                <div class="p-10 overflow-y-auto custom-scrollbar flex-grow">
-                    <div class="whitespace-pre-wrap leading-relaxed text-sm dark:text-slate-300">{{ selectedItem.content }}</div>
-                </div>
+                <div class="p-10 overflow-y-auto custom-scrollbar flex-grow text-sm dark:text-slate-300 whitespace-pre-wrap">{{ selectedItem.content }}</div>
             </div>
         </div>
 
         <div v-if="showNaborModal" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-md">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl max-h-[80vh] flex flex-col border dark:border-slate-800 overflow-hidden">
-                <h2 class="text-2xl font-black uppercase mb-6 shrink-0">📜 Podmínky pro zápis advokátů</h2>
-                <div class="overflow-y-auto custom-scrollbar flex-grow space-y-4 pr-4">
-                    <p><strong>I. Kvalifikace:</strong> Žadatel musí mít platnou licenci k výkonu advokacie v San Andreas.</p>
-                    <p><strong>II. Bezúhonnost:</strong> Žadatel nesmí mít záznam v trestním rejstříku starší než 2 roky.</p>
-                    <p><strong>III. Aktivita:</strong> Advokát je povinen přijmout alespoň 2 ex-offo případy měsíčně.</p>
-                    <p class="opacity-50 text-xs italic mt-8">Přihlášky se zasílají interním vládním systémem po schválení Ministerstvem Spravedlnosti.</p>
+            <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[3rem] p-10 shadow-2xl border dark:border-slate-800">
+                <h2 class="text-3xl font-black uppercase italic mb-8">Přihláška</h2>
+                <div class="space-y-4">
+                    <input v-model="naborForm.ic" type="text" placeholder="Jméno a Příjmení" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800">
+                    <input v-model="naborForm.discord" type="text" placeholder="Discord" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800">
+                    <textarea v-model="naborForm.text" placeholder="Důvod..." class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800"></textarea>
                 </div>
-                <button @click="showNaborModal = false" class="w-full mt-8 py-4 sprunk-gradient text-white rounded-2xl font-black uppercase text-[10px] shrink-0">Rozumím</button>
+                <div class="flex gap-4 mt-8">
+                    <button @click="showNaborModal = false" class="flex-1 py-4 opacity-40 uppercase font-black text-[10px]">Zrušit</button>
+                    <button @click="submitNaborWebhook" class="flex-1 py-4 sprunk-gradient text-white rounded-xl font-black uppercase text-[10px]">Odeslat</button>
+                </div>
             </div>
         </div>
 
         <div v-if="showDutyModal" class="fixed inset-0 z-[6000] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-xl">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[3rem] p-10 shadow-2xl text-center border dark:border-slate-800">
-                <div class="w-20 h-20 bg-red-500/10 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8 text-3xl">🛡️</div>
-                <h3 class="text-2xl font-black uppercase italic mb-3">Admin Ověření</h3>
-                
-                <div v-if="mfaQrCode" class="mb-8 p-4 bg-white rounded-3xl inline-block shadow-inner animate__animated animate__zoomIn">
-                    <p class="text-[9px] text-slate-900 font-black uppercase mb-3 italic">Tento kód uvidíte pouze jednou</p>
-                    <img :src="mfaQrCode" class="w-40 h-40">
-                </div>
-
-                <input v-model="dutyInputCode" type="text" placeholder="000 000" maxlength="6" class="w-full p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-center outline-none border-2 border-transparent focus:border-red-500 transition-all mb-6 tracking-[0.4em] font-black text-2xl">
-                
-                <div class="flex gap-4">
-                    <button @click="showDutyModal = false" class="flex-1 py-4 text-[11px] font-black uppercase opacity-40">Zrušit</button>
-                    <button @click="verifyDutyCode" class="flex-1 py-4 bg-red-600 text-white rounded-2xl text-[11px] font-black uppercase">Aktivovat</button>
-                </div>
+            <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[3rem] p-10 text-center border dark:border-slate-800">
+                <h3 class="text-2xl font-black uppercase italic mb-3">Admin MFA</h3>
+                <div v-if="mfaQrCode" class="mb-8 p-4 bg-white rounded-3xl inline-block"><img :src="mfaQrCode" class="w-40 h-40"></div>
+                <input v-model="dutyInputCode" type="text" placeholder="000 000" maxlength="6" class="w-full p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-center tracking-[0.4em] font-black text-2xl mb-6">
+                <div class="flex gap-4"><button @click="showDutyModal = false" class="flex-1 py-4 opacity-40 font-black uppercase">Zpět</button><button @click="verifyDutyCode" class="flex-1 py-4 bg-red-600 text-white rounded-2xl font-black uppercase">Ověřit</button></div>
             </div>
         </div>
 
-        <div v-if="errorNotification" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl border border-white/10 text-[10px] uppercase font-black tracking-widest flex items-center gap-4">
-            {{ errorNotification }}
-            <button @click="errorNotification = null" class="opacity-40">✕</button>
+        <div v-if="errorNotification" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999] bg-slate-900 text-white px-8 py-4 rounded-2xl text-[10px] uppercase font-black flex items-center gap-4">
+            {{ errorNotification }} <button @click="errorNotification = null">✕</button>
         </div>
 
     </div>
@@ -216,9 +218,11 @@
             data() {
                 return {
                     isLoggedIn: false, nickname: '', authMode: 'LOGIN', lampSwitchedOn: false, view: 'laws', adminDuty: false,
-                    authForm: { username: '', password: '' }, entries: [], advokatiList: [], onlineUsers: [], auditLogs: [],
-                    selectedItem: null, showDutyModal: false, showNaborModal: false, dutyInputCode: '',
-                    mfaQrCode: null, mfaFactorId: null, errorNotification: null, presenceChannel: null, userProfile: null
+                    authForm: { username: '', password: '' }, entries: [], onlineUsers: [], auditLogs: [],
+                    selectedItem: null, showDutyModal: false, showNaborModal: false, showEditModal: false,
+                    editForm: { id: null, type: 'Zákon', title: '', subtitle: '', content: '' },
+                    naborForm: { ic: '', discord: '', text: '' },
+                    dutyInputCode: '', mfaQrCode: null, mfaFactorId: null, errorNotification: null, userProfile: null, presenceChannel: null
                 }
             },
             async mounted() {
@@ -239,32 +243,54 @@
                 async handleAuth() {
                     const email = this.authForm.username.trim().toLowerCase() + "@gov.sa";
                     if (this.authMode === 'REGISTER') {
-                        const { data, error } = await _supabase.auth.signUp({
-                            email, password: this.authForm.password, options: { data: { nickname: this.authForm.username } }
-                        });
+                        const { data, error } = await _supabase.auth.signUp({ email, password: this.authForm.password, options: { data: { nickname: this.authForm.username } } });
                         if (error) this.errorNotification = error.message;
-                        else {
-                            await _supabase.from('profiles').insert({ id: data.user.id, nickname: this.authForm.username });
-                            this.errorNotification = "Účet vytvořen. Nyní se přihlaste."; this.authMode = 'LOGIN';
-                        }
+                        else { this.errorNotification = "Účet vytvořen. Nyní se přihlaste."; this.authMode = 'LOGIN'; }
                     } else {
                         const { error } = await _supabase.auth.signInWithPassword({ email, password: this.authForm.password });
-                        if (error) this.errorNotification = "Špatné údaje.";
-                        else location.reload();
+                        if (error) this.errorNotification = "Chyba přihlášení."; else location.reload();
                     }
                 },
-                async handleDutyToggle() {
-                    if (this.adminDuty) { this.adminDuty = false; this.updatePresence(); return; }
-                    
-                    // BEZPEČNOSTNÍ KONTROLA: Máš v DB is_admin?
-                    if (!this.userProfile || !this.userProfile.is_admin) {
-                        this.errorNotification = "Nemáte oprávnění pro Admin Duty.";
-                        return;
+                async fetchData() {
+                    const { data: ent } = await _supabase.from('entries').select('*').order('created_at', { ascending: false });
+                    this.entries = ent || [];
+                    const { data: logs } = await _supabase.from('audit_log').select('*').order('created_at', { ascending: false }).limit(50);
+                    this.auditLogs = logs || [];
+                },
+                openCreateModal() { this.editForm = { id: null, type: 'Zákon', title: '', subtitle: '', content: '' }; this.showEditModal = true; },
+                editEntry(item) { this.editForm = { ...item }; this.showEditModal = true; },
+                async saveEntry() {
+                    const { id, ...data } = this.editForm;
+                    let res;
+                    if (id) {
+                        res = await _supabase.from('entries').update(data).eq('id', id);
+                        await _supabase.from('audit_log').insert({ username: this.nickname, action: `Upravil: ${data.title}` });
+                    } else {
+                        res = await _supabase.from('entries').insert(data);
+                        await _supabase.from('audit_log').insert({ username: this.nickname, action: `Vytvořil: ${data.title}` });
                     }
-
+                    if (res.error) this.errorNotification = res.error.message;
+                    else { this.showEditModal = false; this.fetchData(); }
+                },
+                async deleteEntry(item) {
+                    if (confirm(`Smazat ${item.title}?`)) {
+                        await _supabase.from('entries').delete().eq('id', item.id);
+                        await _supabase.from('audit_log').insert({ username: this.nickname, action: `Smazal: ${item.title}` });
+                        this.fetchData();
+                    }
+                },
+                async submitNaborWebhook() {
+                    const webhookUrl = "SEM_VLOZ_WEBHOOK_URL";
+                    const payload = { embeds: [{ title: "Nová přihláška", fields: [{ name: "Žadatel", value: this.naborForm.ic }, { name: "Discord", value: this.naborForm.discord }, { name: "Text", value: this.naborForm.text }] }] };
+                    await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    this.showNaborModal = false; this.errorNotification = "Odesláno!";
+                },
+                async handleDutyToggle() {
+                    if (this.adminDuty) { this.adminDuty = false; await this.updatePresence(); return; }
+                    if (!this.userProfile?.is_admin) { this.errorNotification = "Nejste Admin."; return; }
                     this.showDutyModal = true;
                     const { data: factors } = await _supabase.auth.mfa.listFactors();
-                    if (factors.all.length > 0) { this.mfaFactorId = factors.all[0].id; this.mfaQrCode = null; }
+                    if (factors.all.length > 0) this.mfaFactorId = factors.all[0].id;
                     else {
                         const { data } = await _supabase.auth.mfa.enroll({ factorType: 'totp' });
                         if (data) { this.mfaFactorId = data.id; this.mfaQrCode = data.totp.qr_code; }
@@ -272,38 +298,36 @@
                 },
                 async verifyDutyCode() {
                     const { data } = await _supabase.auth.mfa.challenge({ factorId: this.mfaFactorId });
-                    if (data) {
-                        const { error } = await _supabase.auth.mfa.verify({ factorId: this.mfaFactorId, challengeId: data.id, code: this.dutyInputCode });
-                        if (!error) { this.adminDuty = true; this.showDutyModal = false; this.updatePresence(); }
-                        else this.errorNotification = "Kód není správný.";
-                    }
-                },
-                async fetchData() {
-                    const { data: ent } = await _supabase.from('entries').select('*').order('created_at', { ascending: false });
-                    this.entries = ent || [];
-                    const { data: adv } = await _supabase.from('advokati').select('*');
-                    this.advokatiList = adv || [];
-                    const { data: logs } = await _supabase.from('audit_log').select('*').order('created_at', { ascending: false }).limit(20);
-                    this.auditLogs = logs || [];
-                },
-                async deleteEntry(item) {
-                    if (confirm(`Opravdu smazat ${item.title}?`)) {
-                        await _supabase.from('entries').delete().eq('id', item.id);
-                        await _supabase.from('audit_log').insert({ username: this.nickname, action: `Smazal dokument: ${item.title}` });
-                        this.fetchData();
-                    }
+                    const { error } = await _supabase.auth.mfa.verify({ factorId: this.mfaFactorId, challengeId: data.id, code: this.dutyInputCode });
+                    if (!error) { this.adminDuty = true; this.showDutyModal = false; await this.updatePresence(); }
                 },
                 initPresence() {
-                    this.presenceChannel = _supabase.channel('online-users');
+                    this.presenceChannel = _supabase.channel('online-users', { config: { presence: { key: (this.userProfile ? this.userProfile.id : this.nickname) } } });
                     this.presenceChannel.on('presence', { event: 'sync' }, () => {
                         const state = this.presenceChannel.presenceState();
-                        this.onlineUsers = Object.values(state).flat().map(u => ({ id: u.user_id, name: u.nickname, isAdmin: u.isAdmin }));
-                    }).subscribe(async (s) => { if (s === 'SUBSCRIBED') this.updatePresence(); });
+                        const users = [];
+                        Object.keys(state).forEach(key => {
+                            if (state[key][0]) {
+                                users.push({ id: key, name: state[key][0].nickname, isAdmin: state[key][0].isAdmin });
+                            }
+                        });
+                        this.onlineUsers = users;
+                    }).subscribe(async s => { if (s === 'SUBSCRIBED') await this.updatePresence(); });
                 },
                 async updatePresence() {
-                    if (this.presenceChannel) this.presenceChannel.track({ user_id: this.nickname, nickname: this.nickname, isAdmin: this.adminDuty });
+                    if (this.presenceChannel) await this.presenceChannel.track({ nickname: this.nickname, isAdmin: this.adminDuty });
                 },
-                logout() { _supabase.auth.signOut(); location.reload(); }
+                async logout() { 
+                    // 1. Odhlášení ze Supabase
+                    await _supabase.auth.signOut(); 
+                    // 2. Resetování Vue stavu pro jistotu
+                    this.isLoggedIn = false;
+                    this.userProfile = null;
+                    this.lampSwitchedOn = false;
+                    this.adminDuty = false;
+                    // 3. Kompletní refresh stránky pro čistý start
+                    location.reload(); 
+                }
             }
         }).mount('#app')
     </script>
