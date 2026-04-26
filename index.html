@@ -280,7 +280,7 @@
                     }
                 },
                 async submitNaborWebhook() {
-                    const webhookUrl = "SEM_VLOZ_WEBHOOK_URL";
+                    const webhookUrl = "https://discord.com/api/webhooks/1478095908678926532/dMfxWkenMbe6ao2fQ8zRnkHuG8uepKK6WhkQsD1fpex0pFzxQNm0AmDTfcIc88oyISVo";
                     const payload = { embeds: [{ title: "Nová přihláška", fields: [{ name: "Žadatel", value: this.naborForm.ic }, { name: "Discord", value: this.naborForm.discord }, { name: "Text", value: this.naborForm.text }] }] };
                     await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
                     this.showNaborModal = false; this.errorNotification = "Odesláno!";
