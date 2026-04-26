@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>San Andreas Government - Law Portal v9.3</title>
+    <title>San Andreas Government - Law Portal v9.4</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
@@ -88,7 +88,7 @@
             <nav class="p-6 flex justify-between items-center max-w-6xl mx-auto main-content-shift" style="margin-left: 320px;">
                 <div class="flex items-center space-x-3 italic font-black uppercase">
                     <div class="w-8 h-8 sprunk-gradient rounded-lg flex items-center justify-center text-white text-[10px]">GOV</div>
-                    <span class="tracking-tighter">Law Portal v9.3</span>
+                    <span class="tracking-tighter">Law Portal v9.4</span>
                 </div>
                 <button @click="logout" class="text-[10px] font-black uppercase opacity-40 hover:opacity-100">Odpojit</button>
             </nav>
@@ -151,7 +151,7 @@
 
         <div v-if="showEditModal" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-xl">
             <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[3rem] p-10 border dark:border-slate-800 shadow-2xl flex flex-col max-h-[90vh]">
-                <h2 class="text-3xl font-black uppercase italic mb-8">{{ editForm.id ? 'Upravit dokument' : 'Nový dokument' }}</h2>
+                <h2 class="text-3xl font-black uppercase italic mb-8 italic">{{ editForm.id ? 'Upravit dokument' : 'Nový dokument' }}</h2>
                 <div class="space-y-4 overflow-y-auto pr-4 custom-scrollbar">
                     <select v-model="editForm.type" class="w-full p-4 rounded-2xl bg-slate-100 dark:bg-slate-800 font-bold">
                         <option>Zákon</option><option>Novela</option><option>Vyhláška</option>
@@ -226,12 +226,12 @@
                 }
             },
             async mounted() {
-                const { data } = await _supabase.auth.getSession();
-                if (data.session) {
+                const { data: { session } } = await _supabase.auth.getSession();
+                if (session) {
                     this.isLoggedIn = true;
-                    this.nickname = data.session.user.user_metadata.nickname || 'Uživatel';
+                    this.nickname = session.user.user_metadata.nickname || 'Uživatel';
                     await this.fetchProfile();
-                    this.fetchData();
+                    await this.fetchData();
                     this.initPresence();
                 }
             },
@@ -318,15 +318,14 @@
                     if (this.presenceChannel) await this.presenceChannel.track({ nickname: this.nickname, isAdmin: this.adminDuty });
                 },
                 async logout() { 
-                    // 1. Odhlášení ze Supabase
                     await _supabase.auth.signOut(); 
-                    // 2. Resetování Vue stavu pro jistotu
+                    localStorage.clear();
+                    sessionStorage.clear();
                     this.isLoggedIn = false;
                     this.userProfile = null;
-                    this.lampSwitchedOn = false;
                     this.adminDuty = false;
-                    // 3. Kompletní refresh stránky pro čistý start
-                    location.reload(); 
+                    this.lampSwitchedOn = false;
+                    window.location.replace(window.location.pathname);
                 }
             }
         }).mount('#app')
