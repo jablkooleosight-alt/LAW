@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>San Andreas Government - Law Portal v9.0 Official</title>
+    <title>San Andreas Government - Law Portal v9.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
@@ -20,13 +20,19 @@
 
     <style>
         body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; overflow-x: hidden; }
-        .sprunk-gradient { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); }
+        .sprunk-gradient { background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); position: relative; overflow: hidden; }
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #06b6d4; border-radius: 10px; }
-        .sidebar-online { width: 260px; height: calc(100vh - 140px); position: fixed; left: 30px; top: 100px; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(20px); border-radius: 2.5rem; border: 1px solid rgba(255, 255, 255, 0.05); z-index: 50; }
-        .lamp-head.active { background: #06b6d4; box-shadow: 0 0 80px rgba(6, 182, 212, 0.4); }
-        .pull-cord { width: 3px; height: 75px; background: #64748b; border-radius: 2px; position: relative; transition: 0.2s; }
-        .pull-cord::after { content: ''; position: absolute; bottom: -12px; left: -4px; width: 11px; height: 11px; background: #cbd5e1; border-radius: 50%; }
+        
+        /* LAMPIČKA DESIGN */
+        .sidebar-online { width: 260px; height: calc(100vh - 140px); position: fixed; left: 30px; top: 100px; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(15px); border-radius: 2.5rem; border: 1px solid rgba(255, 255, 255, 0.05); z-index: 50; }
+        .lamp-head { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .lamp-head.active { background: #06b6d4; box-shadow: 0 0 100px rgba(6, 182, 212, 0.5), 0 0 40px rgba(6, 182, 212, 0.3); }
+        .pull-cord-container { position: absolute; right: 15px; top: 90px; width: 30px; height: 120px; display: flex; justify-content: center; cursor: pointer; z-index: 100; }
+        .pull-cord { width: 3px; height: 85px; background: #64748b; border-radius: 2px; position: relative; transition: transform 0.2s; }
+        .pull-cord::after { content: ''; position: absolute; bottom: -15px; left: -5px; width: 13px; height: 13px; background: #cbd5e1; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+        .pull-cord:active { transform: translateY(15px); }
+
         @media (max-width: 1400px) { .sidebar-online { display: none; } .main-content-shift { margin-left: auto !important; margin-right: auto !important; } }
     </style>
 </head>
@@ -34,21 +40,30 @@
     <div id="app" class="min-h-screen">
         
         <div v-if="!isLoggedIn" class="fixed inset-0 z-[2000] flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-950">
-            <div class="mb-12 relative flex flex-col items-center">
-                <div class="w-28 h-20 bg-slate-800 rounded-t-full border-b-4 border-slate-900 transition-all duration-300" :class="{active: lampSwitchedOn}"></div>
-                <div @click="lampSwitchedOn = !lampSwitchedOn" class="cursor-pointer p-4 group">
-                    <div class="pull-cord group-active:translate-y-4"></div>
+            <div class="lamp-wrapper mb-12 relative flex justify-center w-40 h-64">
+                <div class="lamp-head w-32 h-24 bg-slate-800 rounded-t-full border-b-8 border-slate-900" :class="{active: lampSwitchedOn}"></div>
+                <div @click="lampSwitchedOn = !lampSwitchedOn" class="pull-cord-container">
+                    <div class="pull-cord"></div>
                 </div>
+                <div v-if="!lampSwitchedOn" class="absolute -bottom-10 whitespace-nowrap text-[10px] font-black uppercase tracking-[0.3em] opacity-40 animate-pulse">Zatáhni pro přístup</div>
             </div>
             
-            <div v-if="lampSwitchedOn" class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl animate__animated animate__fadeInUp">
-                <h2 class="text-2xl font-black text-center mb-6 uppercase italic">{{ authMode === 'LOGIN' ? 'Vstup do systému' : 'Registrace' }}</h2>
-                <div class="space-y-3">
-                    <input v-model="authForm.username" type="text" placeholder="Nickname" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
-                    <input v-model="authForm.password" type="password" placeholder="Heslo" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
-                    <button @click="handleAuth" class="w-full py-4 sprunk-gradient text-white rounded-xl font-black uppercase">{{ authMode === 'LOGIN' ? 'Přihlásit' : 'Vytvořit' }}</button>
-                    <p @click="authMode = (authMode === 'LOGIN' ? 'REGISTER' : 'LOGIN')" class="text-center text-[10px] uppercase font-black opacity-40 hover:opacity-100 cursor-pointer pt-4">
-                        {{ authMode === 'LOGIN' ? 'Vytvořit nový účet' : 'Zpět na přihlášení' }}
+            <div v-if="lampSwitchedOn" class="w-full max-w-sm bg-white dark:bg-slate-900 rounded-[3rem] p-10 shadow-2xl animate__animated animate__fadeInUp">
+                <h2 class="text-3xl font-black text-center mb-8 uppercase italic tracking-tighter">{{ authMode === 'LOGIN' ? 'Vstup do systému' : 'Nová registrace' }}</h2>
+                <div class="space-y-4">
+                    <div class="space-y-1">
+                        <label class="text-[9px] uppercase font-black opacity-30 ml-2">Uživatelské jméno</label>
+                        <input v-model="authForm.username" type="text" placeholder="např. Jablkoo" class="w-full p-4 rounded-2xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[9px] uppercase font-black opacity-30 ml-2">Heslo</label>
+                        <input v-model="authForm.password" type="password" placeholder="••••••••" class="w-full p-4 rounded-2xl bg-slate-100 dark:bg-slate-800 outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
+                    </div>
+                    <button @click="handleAuth" class="w-full py-5 sprunk-gradient text-white rounded-2xl font-black uppercase shadow-xl hover:scale-[1.02] transition-transform">
+                        {{ authMode === 'LOGIN' ? 'Vstoupit' : 'Vytvořit účet' }}
+                    </button>
+                    <p @click="authMode = (authMode === 'LOGIN' ? 'REGISTER' : 'LOGIN')" class="text-center text-[10px] uppercase font-black opacity-40 hover:opacity-100 cursor-pointer pt-4 tracking-widest">
+                        {{ authMode === 'LOGIN' ? 'Nemáte účet? Registrace' : 'Už máte účet? Přihlášení' }}
                     </p>
                 </div>
             </div>
@@ -56,15 +71,15 @@
 
         <div v-else>
             <aside class="sidebar-online p-7 overflow-y-auto custom-scrollbar">
-                <h4 class="text-[10px] font-black uppercase opacity-40 mb-8 tracking-widest text-center">Justice Online</h4>
+                <h4 class="text-[10px] font-black uppercase opacity-40 mb-8 tracking-widest">Uživatelé Online</h4>
                 <div class="space-y-4">
                     <div v-for="user in onlineUsers" :key="user.id" class="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5">
                         <div class="w-8 h-8 rounded-xl flex items-center justify-center text-white font-black text-xs" :class="user.isAdmin ? 'bg-red-600' : 'sprunk-gradient'">
-                            {{ user.name.charAt(0).toUpperCase() }}
+                            {{ user.name ? user.name.charAt(0).toUpperCase() : '?' }}
                         </div>
                         <div class="overflow-hidden">
                             <p class="text-[10px] font-bold uppercase truncate" :class="user.isAdmin ? 'text-red-500' : ''">{{ user.name }}</p>
-                            <p class="text-[7px] opacity-40 uppercase">{{ user.isAdmin ? 'In Duty' : 'Online' }}</p>
+                            <p class="text-[7px] opacity-40 uppercase">{{ user.isAdmin ? 'Administrátor' : 'Uživatel' }}</p>
                         </div>
                     </div>
                 </div>
@@ -73,92 +88,73 @@
                     <div class="flex items-center gap-4 bg-white/10 p-4 rounded-2xl hover:bg-white/20 transition-all">
                         <div class="w-10 h-10 rounded-2xl sprunk-gradient flex items-center justify-center text-white font-black">{{ nickname.charAt(0).toUpperCase() }}</div>
                         <div>
-                            <p class="text-[10px] font-bold uppercase" :class="adminDuty ? 'text-red-500' : ''">{{ nickname }}</p>
-                            <p class="text-[8px] opacity-40 uppercase">{{ adminDuty ? 'Admin Active' : 'Off Duty' }}</p>
+                            <p class="text-[11px] font-bold uppercase" :class="adminDuty ? 'text-red-500' : ''">{{ nickname }}</p>
+                            <p class="text-[8px] opacity-40 uppercase">{{ adminDuty ? 'Duty Active' : 'Off Duty' }}</p>
                         </div>
                     </div>
                 </div>
             </aside>
 
-            <nav class="p-6 flex justify-between items-center max-w-6xl mx-auto main-content-shift" style="margin-left: 320px;">
+            <nav class="p-8 flex justify-between items-center max-w-6xl mx-auto main-content-shift" style="margin-left: 320px;">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 sprunk-gradient rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-cyan-500/20">GOV</div>
-                    <span class="text-xl font-black uppercase tracking-tighter italic dark:text-white">Law Portal</span>
+                    <div class="w-10 h-10 sprunk-gradient rounded-xl flex items-center justify-center text-white font-black text-xs">GOV</div>
+                    <span class="text-xl font-black uppercase tracking-tighter italic">San Andreas Law Portal</span>
                 </div>
-                <button @click="logout" class="text-[10px] font-black uppercase opacity-30 hover:opacity-100 transition-all">Odpojit se</button>
+                <button @click="logout" class="text-[10px] font-black uppercase opacity-30 hover:opacity-100">Odhlásit</button>
             </nav>
 
             <main class="max-w-5xl mx-auto px-6 pb-20 main-content-shift" style="margin-left: 300px;">
-                <header class="text-center py-12">
-                    <h1 class="text-7xl font-black mb-12 uppercase italic tracking-tighter dark:text-white animate__animated animate__fadeInDown">Justice System</h1>
-                    
+                <header class="text-center py-16 animate__animated animate__fadeIn">
+                    <h1 class="text-7xl font-black mb-12 uppercase italic tracking-tighter">Government</h1>
                     <div class="flex justify-center gap-4">
-                        <button @click="view = 'laws'" :class="view === 'laws' ? 'sprunk-gradient text-white scale-105' : 'bg-white dark:bg-slate-900 opacity-50'" class="px-10 py-4 rounded-2xl font-black uppercase text-[11px] transition-all shadow-xl">Legislativa</button>
-                        <button @click="view = 'advokati'" :class="view === 'advokati' ? 'sprunk-gradient text-white scale-105' : 'bg-white dark:bg-slate-900 opacity-50'" class="px-10 py-4 rounded-2xl font-black uppercase text-[11px] transition-all shadow-xl">Advokáti</button>
-                        <button v-if="adminDuty" @click="createNewEntry" class="bg-red-600 text-white px-10 py-4 rounded-2xl font-black uppercase text-[11px] hover:bg-red-500 transition-all shadow-xl">+ Nový záznam</button>
+                        <button @click="view = 'laws'" :class="view === 'laws' ? 'sprunk-gradient text-white' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-10 py-4 rounded-2xl font-black uppercase text-[11px] shadow-lg transition-all">Dokumenty</button>
+                        <button @click="view = 'advokati'" :class="view === 'advokati' ? 'sprunk-gradient text-white' : 'bg-white dark:bg-slate-900 opacity-60'" class="px-10 py-4 rounded-2xl font-black uppercase text-[11px] shadow-lg transition-all">Advokáti</button>
+                        <button v-if="adminDuty" @click="createNewEntry" class="bg-red-600 text-white px-10 py-4 rounded-2xl font-black uppercase text-[11px] shadow-lg hover:bg-red-500">+ Nový</button>
                     </div>
                 </header>
 
-                <div v-if="view === 'laws'" class="space-y-20 animate__animated animate__fadeIn">
-                    <div v-for="type in ['Zákon', 'Novela', 'Vyhláška']" :key="type">
-                        <div class="flex items-center gap-6 mb-10">
-                            <h2 class="text-3xl font-black uppercase italic tracking-widest text-cyan-500">{{ type }}y</h2>
-                            <div class="h-[1px] flex-grow bg-gradient-to-right from-cyan-500/50 to-transparent"></div>
-                        </div>
+                <div v-if="view === 'laws'" class="space-y-16 animate__animated animate__fadeIn">
+                    <section v-for="type in ['Zákon', 'Novela', 'Vyhláška']" :key="type">
+                        <h2 class="text-2xl font-black uppercase italic tracking-widest mb-8 text-cyan-500">{{ type }}y</h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div v-for="item in entries.filter(e => e.type === type)" :key="item.id" class="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border border-transparent dark:border-slate-800 hover:border-cyan-500 transition-all shadow-sm">
-                                <div class="flex justify-between items-center mb-6">
-                                    <span class="px-4 py-1 rounded-full text-[9px] font-black uppercase bg-cyan-500/10 text-cyan-500">{{ type }}</span>
-                                    <button v-if="adminDuty" @click="deleteEntry(item.id)" class="text-red-500 hover:text-red-400 transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                    </button>
-                                </div>
-                                <h3 class="text-2xl font-black mb-3 dark:text-white leading-tight">{{ item.title }}</h3>
-                                <p class="text-slate-400 mb-8 italic text-xs leading-relaxed">{{ item.subtitle }}</p>
-                                <button @click="selectedItem = item" class="w-full py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-black text-[10px] uppercase hover:bg-cyan-500 hover:text-white transition-all">Otevřít dokument</button>
+                            <div v-for="item in entries.filter(e => e.type === type)" :key="item.id" class="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border dark:border-slate-800 shadow-sm">
+                                <h3 class="text-2xl font-black mb-2">{{ item.title }}</h3>
+                                <p class="text-slate-400 mb-8 italic text-xs">{{ item.subtitle }}</p>
+                                <button @click="selectedItem = item" class="w-full py-4 rounded-2xl border-2 border-slate-100 dark:border-slate-800 font-black text-[10px] uppercase hover:bg-cyan-500 hover:text-white transition-all">Otevřít</button>
                             </div>
                         </div>
-                    </div>
+                    </section>
                 </div>
 
                 <div v-if="view === 'advokati'" class="animate__animated animate__fadeIn space-y-10">
-                    <div class="bg-white dark:bg-slate-900 rounded-[3rem] p-12 shadow-2xl text-center border dark:border-slate-800">
-                        <h2 class="text-4xl font-black uppercase italic mb-4">Advokáti Ex-Offo</h2>
-                        <p class="text-sm opacity-50 mb-10 max-w-2xl mx-auto leading-relaxed">Oficiální seznam certifikovaných právních zástupců státu San Andreas oprávněných k zastupování u soudu.</p>
-                        <button @click="showNaborModal = true" class="px-12 py-5 sprunk-gradient text-white rounded-2xl font-black uppercase text-xs shadow-lg shadow-cyan-500/30">Podmínky zápisu</button>
+                    <div class="bg-white dark:bg-slate-900 rounded-[3rem] p-12 shadow-xl text-center border dark:border-slate-800">
+                        <h2 class="text-3xl font-black uppercase italic mb-4">Seznam Advokátů</h2>
+                        <p class="text-sm opacity-60 mb-8 italic">Oficiální databáze certifikovaných právníků San Andreas.</p>
+                        <button @click="showNaborModal = true" class="px-12 py-4 sprunk-gradient text-white rounded-2xl font-black uppercase text-xs">Podmínky zápisu</button>
                     </div>
-
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div v-for="adv in advokatiList" :key="adv.id" class="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border dark:border-slate-800 relative group">
+                        <div v-for="adv in advokatiList" :key="adv.id" class="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border dark:border-slate-800 relative">
                             <div class="absolute top-0 left-0 w-1.5 h-full sprunk-gradient"></div>
-                            <h4 class="text-xl font-black uppercase italic mb-1">{{ adv.titul }} {{ adv.jmeno }}</h4>
-                            <p class="text-[10px] font-bold text-cyan-500 uppercase tracking-widest mb-6">Certifikovaný Advokát</p>
-                            <div class="p-3 bg-slate-100 dark:bg-slate-800/50 rounded-xl">
-                                <p class="text-[9px] opacity-40 uppercase font-black mb-1">Kontakt</p>
-                                <p class="text-xs font-bold">{{ adv.email }}</p>
-                            </div>
+                            <h4 class="text-lg font-black uppercase italic">{{ adv.titul }} {{ adv.jmeno }}</h4>
+                            <p class="text-[10px] font-bold text-cyan-500 uppercase mt-1">Advokát</p>
+                            <p class="text-xs mt-6 opacity-60 font-bold tracking-tight">{{ adv.email }}</p>
                         </div>
                     </div>
                 </div>
             </main>
         </div>
 
-        <div v-if="selectedItem" class="fixed inset-0 z-[5000] flex items-center justify-center p-4 md:p-10 bg-slate-950/90 backdrop-blur-md animate__animated animate__fadeIn">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-[3rem] shadow-2xl flex flex-col max-h-[90vh] border dark:border-slate-800">
-                <div class="p-10 pb-6 border-b dark:border-slate-800 flex justify-between items-start shrink-0">
+        <div v-if="selectedItem" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/90 backdrop-blur-md animate__animated animate__fadeIn">
+            <div class="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-[3rem] shadow-2xl flex flex-col max-h-[85vh] border dark:border-slate-800 overflow-hidden">
+                <div class="p-10 pb-6 flex justify-between items-start shrink-0 border-b dark:border-slate-800">
                     <div>
                         <span class="text-cyan-500 font-black text-[10px] uppercase tracking-widest">{{ selectedItem.type }}</span>
-                        <h2 class="text-3xl font-black dark:text-white mt-1 uppercase italic">{{ selectedItem.title }}</h2>
+                        <h2 class="text-3xl font-black dark:text-white mt-1 uppercase italic tracking-tighter">{{ selectedItem.title }}</h2>
                     </div>
-                    <button @click="selectedItem = null" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:scale-110 transition-all text-xl">✕</button>
+                    <button @click="selectedItem = null" class="w-12 h-12 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xl font-bold">✕</button>
                 </div>
                 <div class="p-10 overflow-y-auto custom-scrollbar flex-grow">
-                    <div class="border-l-4 border-cyan-500 pl-8 py-2">
-                        <div class="whitespace-pre-wrap leading-relaxed text-sm dark:text-slate-300 font-medium">{{ selectedItem.content }}</div>
-                    </div>
-                </div>
-                <div class="p-6 bg-slate-50 dark:bg-slate-800/30 text-center shrink-0 rounded-b-[3rem]">
-                    <p class="text-[9px] font-black uppercase opacity-30 tracking-[0.4em]">San Andreas Justice Department Document</p>
+                    <div class="whitespace-pre-wrap leading-relaxed text-sm dark:text-slate-300">{{ selectedItem.content }}</div>
                 </div>
             </div>
         </div>
@@ -166,28 +162,26 @@
         <div v-if="showDutyModal" class="fixed inset-0 z-[6000] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-xl">
             <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[3rem] p-10 shadow-2xl text-center border dark:border-slate-800">
                 <div class="w-20 h-20 bg-red-500/10 text-red-500 rounded-3xl flex items-center justify-center mx-auto mb-8 text-3xl">🛡️</div>
-                <h3 class="text-2xl font-black uppercase italic mb-3">Ověření Identity</h3>
+                <h3 class="text-2xl font-black uppercase italic mb-3">Ověření Admina</h3>
                 
-                <div v-if="mfaQrCode" class="mb-8 p-4 bg-white rounded-[2rem] inline-block shadow-inner animate__animated animate__zoomIn">
-                    <p class="text-[9px] text-slate-900 font-black uppercase mb-3">Naskenuj mobilem</p>
+                <div v-if="mfaQrCode" class="mb-8 p-4 bg-white rounded-3xl inline-block shadow-inner animate__animated animate__zoomIn">
+                    <p class="text-[9px] text-slate-900 font-black uppercase mb-3">Naskenuj v mobilu</p>
                     <img :src="mfaQrCode" class="w-40 h-40">
                 </div>
 
-                <p class="text-[10px] opacity-40 uppercase mb-6 font-black tracking-widest">Zadej 6místný kód</p>
                 <input v-model="dutyInputCode" type="text" placeholder="000 000" maxlength="6" class="w-full p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 text-center outline-none border-2 border-transparent focus:border-red-500 transition-all mb-6 tracking-[0.5em] font-black text-2xl">
                 
                 <div class="flex gap-4">
-                    <button @click="showDutyModal = false" class="flex-1 py-4 text-[11px] font-black uppercase opacity-40 hover:opacity-100">Zrušit</button>
-                    <button @click="verifyDutyCode" class="flex-1 py-4 bg-red-600 text-white rounded-2xl text-[11px] font-black uppercase shadow-lg shadow-red-600/20">Aktivovat</button>
+                    <button @click="showDutyModal = false" class="flex-1 py-4 text-[11px] font-black uppercase opacity-40">Zrušit</button>
+                    <button @click="verifyDutyCode" class="flex-1 py-4 bg-red-600 text-white rounded-2xl text-[11px] font-black uppercase">Ověřit</button>
                 </div>
             </div>
         </div>
 
-        <div v-if="errorNotification" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999] animate__animated animate__fadeInUp">
-            <div class="bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-4">
-                <span class="text-cyan-500 font-black">!</span>
+        <div v-if="errorNotification" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[9999] animate__animated animate__slideInUp">
+            <div class="bg-slate-900 text-white px-10 py-5 rounded-3xl shadow-2xl border border-white/10 flex items-center gap-6">
                 <p class="text-[10px] uppercase font-black tracking-widest">{{ errorNotification }}</p>
-                <button @click="errorNotification = null" class="ml-4 opacity-40 hover:opacity-100">✕</button>
+                <button @click="errorNotification = null" class="opacity-40">✕</button>
             </div>
         </div>
 
@@ -210,7 +204,7 @@
                 const { data } = await _supabase.auth.getSession();
                 if (data.session) {
                     this.isLoggedIn = true;
-                    this.nickname = data.session.user.user_metadata.nickname || 'Anonym';
+                    this.nickname = data.session.user.user_metadata.nickname || 'Uživatel';
                     this.fetchData();
                     this.initPresence();
                 }
@@ -218,15 +212,22 @@
             methods: {
                 async handleAuth() {
                     const email = this.authForm.username.trim().toLowerCase() + "@gov.sa";
+                    const password = this.authForm.password;
+
                     if (this.authMode === 'REGISTER') {
-                        const { error } = await _supabase.auth.signUp({
-                            email, password: this.authForm.password, options: { data: { nickname: this.authForm.username } }
+                        const { data, error } = await _supabase.auth.signUp({
+                            email, password, options: { data: { nickname: this.authForm.username } }
                         });
-                        if (error) this.errorNotification = error.message;
-                        else { this.errorNotification = "Účet vytvořen. Přihlaste se."; this.authMode = 'LOGIN'; }
+                        if (error) {
+                            this.errorNotification = error.message;
+                        } else {
+                            // Fix pro automatické přihlášení po registraci
+                            this.errorNotification = "Účet vytvořen! Přihlašuji...";
+                            setTimeout(() => { this.authMode = 'LOGIN'; this.handleAuth(); }, 1500);
+                        }
                     } else {
-                        const { error } = await _supabase.auth.signInWithPassword({ email, password: this.authForm.password });
-                        if (error) this.errorNotification = "Nesprávné údaje.";
+                        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+                        if (error) this.errorNotification = "Chyba: " + error.message;
                         else location.reload();
                     }
                 },
@@ -247,13 +248,13 @@
                     if (data) {
                         const { error } = await _supabase.auth.mfa.verify({ factorId: this.mfaFactorId, challengeId: data.id, code: this.dutyInputCode });
                         if (!error) { this.adminDuty = true; this.showDutyModal = false; this.updatePresence(); }
-                        else this.errorNotification = "Špatný kód.";
+                        else this.errorNotification = "Neplatný kód.";
                     }
                 },
                 async fetchData() {
-                    const { data: ent } = await _supabase.from('entries').select('*').order('created_at', { ascending: false });
+                    const { data: ent } = await _supabase.from('entries').select('*');
                     if (ent) this.entries = ent;
-                    const { data: adv } = await _supabase.from('advokati').select('*').order('jmeno', { ascending: true });
+                    const { data: adv } = await _supabase.from('advokati').select('*');
                     if (adv) this.advokatiList = adv;
                 },
                 initPresence() {
@@ -265,12 +266,6 @@
                 },
                 async updatePresence() {
                     if (this.presenceChannel) this.presenceChannel.track({ user_id: this.nickname, nickname: this.nickname, isAdmin: this.adminDuty });
-                },
-                async deleteEntry(id) {
-                    if (confirm('Opravdu smazat?')) {
-                        await _supabase.from('entries').delete().eq('id', id);
-                        this.fetchData();
-                    }
                 },
                 logout() { _supabase.auth.signOut(); location.reload(); }
             }
