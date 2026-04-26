@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>San Andreas Government - Law Portal v9.7</title>
+    <title>San Andreas Government - Law Portal v9.8</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
@@ -91,7 +91,7 @@
             <nav class="p-6 flex justify-between items-center max-w-6xl mx-auto main-content-shift" style="margin-left: 320px;">
                 <div class="flex items-center space-x-3 italic font-black uppercase">
                     <div class="w-8 h-8 sprunk-gradient rounded-lg flex items-center justify-center text-white text-[10px]">GOV</div>
-                    <span class="tracking-tighter">Law Portal v9.7</span>
+                    <span class="tracking-tighter">Law Portal v9.8</span>
                 </div>
                 <button @click="logout" class="text-[10px] font-black uppercase opacity-40 hover:opacity-100">Odpojit</button>
             </nav>
@@ -99,7 +99,7 @@
             <main class="max-w-5xl mx-auto px-6 pb-20 main-content-shift" style="margin-left: 300px;">
                 <div v-if="adminDuty || emergencyActive" class="mb-10 animate__animated animate__fadeInDown">
                     <div class="bg-red-600/10 border-2 border-red-600/20 rounded-[2.5rem] p-8 flex flex-col items-center text-center">
-                        <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-red-500 mb-2">Nouzový stav (Status)</h4>
+                        <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-red-500 mb-2">Nouzový stav aktivován</h4>
                         <div class="text-5xl font-black italic tracking-tighter mb-4 text-red-600">{{ formatTime(emergencyTime) }}</div>
                         <div class="flex gap-4" v-if="adminDuty">
                             <button @click="toggleEmergency" class="px-8 py-3 rounded-xl font-black uppercase text-[10px] border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white transition-all">
@@ -244,12 +244,11 @@
                     editForm: { id: null, type: 'Zákon', title: '', subtitle: '', content: '' },
                     naborForm: { ic: '', discord: '', text: '' },
                     dutyInputCode: '', mfaQrCode: null, mfaFactorId: null, errorNotification: null, userProfile: null, presenceChannel: null,
-                    emergencyActive: false, emergencyTime: 0, emergencyInterval: null
+                    emergencyActive: false, emergencyTime: 2592000, emergencyInterval: null
                 }
             },
             computed: {
                 filteredAuditLogs() {
-                    // Filtr pro běžné uživatele - uvidí jen akce typu Upravil, Vytvořil, Smazal
                     return this.auditLogs.filter(log => 
                         log.action.includes('Upravil:') || 
                         log.action.includes('Vytvořil:') || 
@@ -294,36 +293,43 @@
                     if (this.emergencyActive) {
                         this.emergencyActive = false;
                         clearInterval(this.emergencyInterval);
-                        this.emergencyTime = 0;
-                        localStorage.removeItem('emergency_start');
+                        this.emergencyTime = 2592000;
+                        localStorage.removeItem('emergency_start_time');
                         _supabase.from('audit_log').insert({ username: this.nickname, action: `Ukončil Nouzový stav` });
                     } else {
                         this.emergencyActive = true;
-                        this.emergencyTime = 0;
                         const startTime = Date.now();
-                        localStorage.setItem('emergency_start', startTime);
+                        localStorage.setItem('emergency_start_time', startTime);
                         this.startTimer(startTime);
-                        _supabase.from('audit_log').insert({ username: this.nickname, action: `Aktivoval Nouzový stav` });
+                        _supabase.from('audit_log').insert({ username: this.nickname, action: `Aktivoval Nouzový stav (30 dní odpočet)` });
                     }
                 },
                 startTimer(startTime) {
                     clearInterval(this.emergencyInterval);
+                    const totalDuration = 2592000; // 30 dní v sekundách
                     this.emergencyInterval = setInterval(() => {
-                        this.emergencyTime = Math.floor((Date.now() - startTime) / 1000);
+                        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                        this.emergencyTime = Math.max(0, totalDuration - elapsed);
+                        if (this.emergencyTime <= 0) {
+                            clearInterval(this.emergencyInterval);
+                            this.emergencyActive = false;
+                        }
                     }, 1000);
                 },
                 loadEmergencyState() {
-                    const savedStart = localStorage.getItem('emergency_start');
+                    const savedStart = localStorage.getItem('emergency_start_time');
                     if (savedStart) {
                         this.emergencyActive = true;
                         this.startTimer(parseInt(savedStart));
                     }
                 },
-                formatTime(s) {
-                    const hrs = Math.floor(s / 3600);
-                    const mins = Math.floor((s % 3600) / 60);
-                    const secs = s % 60;
-                    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+                formatTime(totalSeconds) {
+                    if (totalSeconds <= 0) return "00:00:00:00";
+                    const days = Math.floor(totalSeconds / 86400);
+                    const hours = Math.floor((totalSeconds % 86400) / 3600);
+                    const minutes = Math.floor((totalSeconds % 3600) / 60);
+                    const seconds = totalSeconds % 60;
+                    return `${days.toString().padStart(2, '0')}d ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 },
                 openCreateModal() { this.editForm = { id: null, type: 'Zákon', title: '', subtitle: '', content: '' }; this.showEditModal = true; },
                 editEntry(item) { this.editForm = { ...item }; this.showEditModal = true; },
