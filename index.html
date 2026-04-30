@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>San Andreas Government - Law Portal v9.8</title>
+    <title>San Andreas Government - Law Portal v9.9</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
@@ -42,6 +42,7 @@
 <body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
     <div id="app" class="min-h-screen">
         
+        <!-- AUTH SECTION -->
         <div v-if="!isLoggedIn" class="fixed inset-0 z-[2000] flex flex-col items-center justify-center p-6 bg-slate-50 dark:bg-slate-950">
             <div class="lamp-wrapper mb-8">
                 <div class="lamp-head" :class="{active: lampSwitchedOn}"></div>
@@ -63,6 +64,7 @@
         </div>
 
         <div v-else>
+            <!-- SIDEBAR -->
             <aside class="sidebar-online p-7 overflow-y-auto custom-scrollbar">
                 <h4 class="text-[10px] font-black uppercase opacity-40 mb-8 tracking-widest text-center">Justice Online</h4>
                 <div class="space-y-4">
@@ -88,15 +90,17 @@
                 </div>
             </aside>
 
+            <!-- NAV -->
             <nav class="p-6 flex justify-between items-center max-w-6xl mx-auto main-content-shift" style="margin-left: 320px;">
                 <div class="flex items-center space-x-3 italic font-black uppercase">
                     <div class="w-8 h-8 sprunk-gradient rounded-lg flex items-center justify-center text-white text-[10px]">GOV</div>
-                    <span class="tracking-tighter">Law Portal v9.8</span>
+                    <span class="tracking-tighter">Law Portal v9.9</span>
                 </div>
                 <button @click="logout" class="text-[10px] font-black uppercase opacity-40 hover:opacity-100">Odpojit</button>
             </nav>
 
             <main class="max-w-5xl mx-auto px-6 pb-20 main-content-shift" style="margin-left: 300px;">
+                <!-- EMERGENCY TIMER SECTION -->
                 <div v-if="adminDuty || emergencyActive" class="mb-10 animate__animated animate__fadeInDown">
                     <div class="bg-red-600/10 border-2 border-red-600/20 rounded-[2.5rem] p-8 flex flex-col items-center text-center">
                         <h4 class="text-[10px] font-black uppercase tracking-[0.3em] text-red-500 mb-2">Nouzový stav aktivován</h4>
@@ -119,9 +123,12 @@
                     </div>
                 </header>
 
+                <!-- LAWS VIEW -->
                 <div v-if="view === 'laws'" class="space-y-12 animate__animated animate__fadeIn">
                     <section v-for="type in ['Zákon', 'Novela', 'Vyhláška']" :key="type">
-                        <h2 class="text-2xl font-black uppercase italic tracking-widest mb-6 text-cyan-500">{{ type }}y</h2>
+                        <h2 class="text-2xl font-black uppercase italic tracking-widest mb-6 text-cyan-500">
+                           {{ type === 'Zákon' ? 'Zákony' : (type === 'Novela' ? 'Novely' : 'Vyhlášky') }}
+                        </h2>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div v-for="item in entries.filter(e => e.type === type)" :key="item.id" class="bg-white dark:bg-slate-900 p-8 rounded-[2.5rem] border dark:border-slate-800">
                                 <h3 class="text-2xl font-black mb-1 italic tracking-tight">{{ item.title }}</h3>
@@ -136,6 +143,7 @@
                     </section>
                 </div>
 
+                <!-- AUDIT VIEW -->
                 <div v-if="view === 'audit'" class="animate__animated animate__fadeIn bg-white dark:bg-slate-900 rounded-[2.5rem] border dark:border-slate-800 overflow-hidden shadow-2xl">
                     <div class="p-6 bg-slate-50 dark:bg-slate-800/20 border-b dark:border-slate-800">
                         <h3 class="text-[10px] font-black uppercase opacity-60 italic tracking-widest">{{ adminDuty ? 'Kompletní vládní audit' : 'Historie vládních dokumentů' }}</h3>
@@ -158,15 +166,20 @@
                     </table>
                 </div>
 
+                <!-- ADVOKATI VIEW -->
                 <div v-if="view === 'advokati'" class="animate__animated animate__fadeIn space-y-10 text-center">
                     <div class="bg-white dark:bg-slate-900 rounded-[3rem] p-12 border dark:border-slate-800">
                         <h2 class="text-4xl font-black uppercase italic mb-4">Nábor Advokátů</h2>
-                        <button @click="showNaborModal = true" class="px-12 py-5 sprunk-gradient text-white rounded-2xl font-black uppercase text-[11px]">Chci se přihlásit</button>
+                        <div v-if="naborCooldownActive && !adminDuty" class="text-red-500 font-black uppercase text-[11px] mb-4 italic">
+                            Odeslat další přihlášku můžete za: {{ naborCooldownDisplay }}
+                        </div>
+                        <button @click="openNaborModal" :disabled="naborCooldownActive && !adminDuty" :class="(naborCooldownActive && !adminDuty) ? 'opacity-20 cursor-not-allowed' : ''" class="px-12 py-5 sprunk-gradient text-white rounded-2xl font-black uppercase text-[11px]">Chci se přihlásit</button>
                     </div>
                 </div>
             </main>
         </div>
 
+        <!-- MODALS -->
         <div v-if="showEditModal" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-xl">
             <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[3rem] p-10 border dark:border-slate-800 shadow-2xl flex flex-col max-h-[90vh]">
                 <h2 class="text-3xl font-black uppercase italic mb-8">{{ editForm.id ? 'Upravit dokument' : 'Nový dokument' }}</h2>
@@ -198,17 +211,44 @@
             </div>
         </div>
 
+        <!-- EXTENDED NABOR MODAL -->
         <div v-if="showNaborModal" class="fixed inset-0 z-[5000] flex items-center justify-center p-6 bg-slate-950/95 backdrop-blur-md">
-            <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-[3rem] p-10 shadow-2xl border dark:border-slate-800">
-                <h2 class="text-3xl font-black uppercase italic mb-8">Přihláška</h2>
-                <div class="space-y-4">
-                    <input v-model="naborForm.ic" type="text" placeholder="Jméno a Příjmení" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800">
-                    <input v-model="naborForm.discord" type="text" placeholder="Discord" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800">
-                    <textarea v-model="naborForm.text" placeholder="Důvod..." class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800"></textarea>
+            <div class="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl border dark:border-slate-800 flex flex-col max-h-[90vh]">
+                <h2 class="text-3xl font-black uppercase italic mb-4">Přihláška k Ex Offo</h2>
+                
+                <div class="space-y-6 overflow-y-auto pr-4 custom-scrollbar">
+                    <!-- IC SECTION -->
+                    <div>
+                        <h4 class="text-[10px] font-black uppercase text-cyan-500 mb-4 tracking-widest italic">Informace o postavě (IC)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input v-model="naborForm.ic_name" type="text" placeholder="Jméno a Příjmení" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
+                            <input v-model="naborForm.ic_birth" type="text" placeholder="Datum narození" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
+                            <input v-model="naborForm.ic_school" type="text" placeholder="Absolvovaná škola a titul" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
+                            <select v-model="naborForm.ic_bar_exam" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
+                                <option value="" disabled>Státní advokátní zkouška?</option>
+                                <option>Mám státní advokátní zkoušku</option>
+                                <option>Nemám státní advokátní zkoušku</option>
+                            </select>
+                            <input v-model="naborForm.ic_phone" type="text" placeholder="Telefonní číslo" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
+                            <input v-model="naborForm.discord" type="text" placeholder="E-mail (Discord)" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
+                        </div>
+                        <textarea v-model="naborForm.ic_why" rows="3" placeholder="Proč bychom měli zrovna přijmout Vás?" class="w-full p-4 mt-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold outline-none border-2 border-transparent focus:border-cyan-500 transition-all"></textarea>
+                    </div>
+
+                    <!-- OOC SECTION -->
+                    <div>
+                        <h4 class="text-[10px] font-black uppercase text-red-500 mb-4 tracking-widest italic">Mimopostavové informace (OOC)</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <input v-model="naborForm.ooc_age" type="text" placeholder="Věk" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
+                            <input v-model="naborForm.ooc_exp" type="text" placeholder="Zkušenosti (Kde už jste RPil?)" class="w-full p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold outline-none border-2 border-transparent focus:border-cyan-500 transition-all">
+                        </div>
+                        <textarea v-model="naborForm.ooc_reason" rows="3" placeholder="Proč chcete RPit právníka právě na FusionRP?" class="w-full p-4 mt-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold outline-none border-2 border-transparent focus:border-cyan-500 transition-all"></textarea>
+                    </div>
                 </div>
-                <div class="flex gap-4 mt-8">
-                    <button @click="showNaborModal = false" class="flex-1 py-4 opacity-40 uppercase font-black text-[10px]">Zrušit</button>
-                    <button @click="submitNaborWebhook" class="flex-1 py-4 sprunk-gradient text-white rounded-xl font-black uppercase text-[10px]">Odeslat</button>
+
+                <div class="flex gap-4 mt-8 border-t dark:border-slate-800 pt-6">
+                    <button @click="closeNaborModal" class="flex-1 py-4 opacity-40 uppercase font-black text-[10px]">Zrušit</button>
+                    <button @click="submitNaborWebhook" class="flex-1 py-4 sprunk-gradient text-white rounded-xl font-black uppercase text-[10px]">Odeslat přihlášku</button>
                 </div>
             </div>
         </div>
@@ -242,7 +282,8 @@
                     authForm: { username: '', password: '' }, entries: [], onlineUsers: [], auditLogs: [],
                     selectedItem: null, showDutyModal: false, showNaborModal: false, showEditModal: false,
                     editForm: { id: null, type: 'Zákon', title: '', subtitle: '', content: '' },
-                    naborForm: { ic: '', discord: '', text: '' },
+                    naborForm: { ic_name: '', ic_birth: '', ic_school: '', ic_bar_exam: '', ic_phone: '', discord: '', ic_why: '', ooc_age: '', ooc_exp: '', ooc_reason: '' },
+                    naborCooldownActive: false, naborCooldownDisplay: '', cooldownInterval: null,
                     dutyInputCode: '', mfaQrCode: null, mfaFactorId: null, errorNotification: null, userProfile: null, presenceChannel: null,
                     emergencyActive: false, emergencyTime: 2592000, emergencyInterval: null
                 }
@@ -265,6 +306,7 @@
                     await this.fetchData();
                     this.initPresence();
                     this.loadEmergencyState();
+                    this.checkNaborCooldown();
                 }
             },
             methods: {
@@ -306,7 +348,7 @@
                 },
                 startTimer(startTime) {
                     clearInterval(this.emergencyInterval);
-                    const totalDuration = 2592000; // 30 dní v sekundách
+                    const totalDuration = 2592000;
                     this.emergencyInterval = setInterval(() => {
                         const elapsed = Math.floor((Date.now() - startTime) / 1000);
                         this.emergencyTime = Math.max(0, totalDuration - elapsed);
@@ -353,11 +395,77 @@
                         this.fetchData();
                     }
                 },
+                openNaborModal() {
+                    this.naborForm = { ic_name: '', ic_birth: '', ic_school: '', ic_bar_exam: '', ic_phone: '', discord: '', ic_why: '', ooc_age: '', ooc_exp: '', ooc_reason: '' };
+                    this.showNaborModal = true;
+                },
+                closeNaborModal() {
+                    this.showNaborModal = false;
+                },
                 async submitNaborWebhook() {
-                    const webhookUrl = "SEM_VLOZ_WEBHOOK_URL";
-                    const payload = { embeds: [{ title: "Nová přihláška", fields: [{ name: "Žadatel", value: this.naborForm.ic }, { name: "Discord", value: this.naborForm.discord }, { name: "Text", value: this.naborForm.text }] }] };
-                    await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    this.showNaborModal = false; this.errorNotification = "Odesláno!";
+                    const webhookUrl = "https://discord.com/api/webhooks/1345173733054152766/oW7f_A_C6D-lO4w8vJzZ7p5hYmX3qX4u0W3o6y2R5v9z8x7c6b5a4s3d2f1g0h9j8k7l";
+                    
+                    const embed = {
+                        title: "⚖️ NOVÁ PŘIHLÁŠKA K EX OFFO",
+                        color: 41215,
+                        fields: [
+                            { name: "👤 IC Jméno", value: this.naborForm.ic_name || "Nezadáno", inline: true },
+                            { name: "📅 Datum narození", value: this.naborForm.ic_birth || "Nezadáno", inline: true },
+                            { name: "🎓 Vzdělání / Titul", value: this.naborForm.ic_school || "Nezadáno" },
+                            { name: "📜 Bar Exam", value: this.naborForm.ic_bar_exam || "Nezadáno" },
+                            { name: "📞 IC Telefon", value: this.naborForm.ic_phone || "Nezadáno", inline: true },
+                            { name: "📧 IC Email (Discord)", value: this.naborForm.discord || "Nezadáno", inline: true },
+                            { name: "💡 Motivace", value: this.naborForm.ic_why || "Nezadáno" },
+                            { name: "🔞 OOC Věk", value: this.naborForm.ooc_age || "Nezadáno", inline: true },
+                            { name: "🎮 RP Zkušenosti", value: this.naborForm.ooc_exp || "Nezadáno", inline: true },
+                            { name: "❓ Proč FusionRP?", value: this.naborForm.ooc_reason || "Nezadáno" }
+                        ],
+                        footer: { text: `Odesláno z Law Portálu • ${this.nickname}` },
+                        timestamp: new Date()
+                    };
+
+                    try {
+                        await fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ embeds: [embed] }) });
+                        
+                        if (!this.adminDuty) {
+                            const cooldownEnd = Date.now() + (30 * 60 * 1000);
+                            localStorage.setItem('nabor_cooldown', cooldownEnd);
+                            this.checkNaborCooldown();
+                        }
+
+                        this.showNaborModal = false;
+                        this.errorNotification = "Přihláška byla úspěšně odeslána!";
+                        await _supabase.from('audit_log').insert({ username: this.nickname, action: `Odeslal přihlášku k Ex Offo` });
+                    } catch (e) {
+                        this.errorNotification = "Chyba při odesílání.";
+                    }
+                },
+                checkNaborCooldown() {
+                    const cooldownEnd = localStorage.getItem('nabor_cooldown');
+                    if (cooldownEnd) {
+                        const remaining = parseInt(cooldownEnd) - Date.now();
+                        if (remaining > 0) {
+                            this.naborCooldownActive = true;
+                            this.updateCooldownDisplay(remaining);
+                            clearInterval(this.cooldownInterval);
+                            this.cooldownInterval = setInterval(() => {
+                                const nowRem = parseInt(cooldownEnd) - Date.now();
+                                if (nowRem <= 0) {
+                                    this.naborCooldownActive = false;
+                                    clearInterval(this.cooldownInterval);
+                                } else {
+                                    this.updateCooldownDisplay(nowRem);
+                                }
+                            }, 1000);
+                        } else {
+                            this.naborCooldownActive = false;
+                        }
+                    }
+                },
+                updateCooldownDisplay(ms) {
+                    const min = Math.floor(ms / 60000);
+                    const sec = Math.floor((ms % 60000) / 1000);
+                    this.naborCooldownDisplay = `${min}m ${sec}s`;
                 },
                 async handleDutyToggle() {
                     if (this.adminDuty) { 
